@@ -1,0 +1,152 @@
+import React, { useEffect, useState } from 'react';
+import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors, radius } from '../theme';
+import { DESTINATIONS } from '../data/destinations';
+import HeartButton from '../components/HeartButton';
+
+interface Weather {
+  temp: number;
+  label: string;
+}
+
+/** Maps Open-Meteo WMO weather codes to a short readable label. */
+function describe(code: number): string {
+  if (code === 0) return 'Clear sky';
+  if (code <= 3) return 'Partly cloudy';
+  if (code <= 48) return 'Foggy';
+  if (code <= 67) return 'Rainy';
+  if (code <= 77) return 'Snowy';
+  if (code <= 82) return 'Rain showers';
+  return 'Thunderstorm';
+}
+
+export default function DetailsScreen({ route, navigation }: any) {
+  const dest = DESTINATIONS.find((d) => d.id === route.params.id)!;
+  const insets = useSafeAreaInsets();
+  const [weather, setWeather] = useState<Weather | null>(null);
+
+  // Live weather from the free Open-Meteo API (no key needed). Fails silently if offline.
+  useEffect(() => {
+    const { lat, lon } = dest.coords;
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`)
+      .then((r) => r.json())
+      .then((j) => setWeather({ temp: Math.round(j.current.temperature_2m), label: describe(j.current.weather_code) }))
+      .catch(() => setWeather(null));
+  }, [dest]);
+
+  const openMaps = () =>
+    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${dest.coords.lat},${dest.coords.lon}`);
+
+  return (
+    <View style={styles.root}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        <Image source={{ uri: dest.image }} style={styles.hero} />
+        <View style={styles.body}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{dest.category}</Text>
+          </View>
+          <Text style={styles.name}>{dest.name}</Text>
+          <View style={styles.row}>
+            <Ionicons name="location-sharp" size={16} color={colors.muted} />
+            <Text style={styles.location}>{dest.location}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <View style={styles.infoBox}>
+              <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+              <Text style={styles.infoLabel}>Best time</Text>
+              <Text style={styles.infoValue}>{dest.bestTime}</Text>
+            </View>
+            <View style={styles.infoBox}>
+              <Ionicons name="partly-sunny-outline" size={20} color={colors.accent} />
+              <Text style={styles.infoLabel}>Weather now</Text>
+              <Text style={styles.infoValue}>{weather ? `${weather.temp}°C, ${weather.label}` : '—'}</Text>
+            </View>
+          </View>
+
+          <Text style={styles.section}>About</Text>
+          <Text style={styles.desc}>{dest.description}</Text>
+
+          <Text style={styles.section}>Popular attractions</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {dest.attractions.map((a) => (
+              <View key={a.name} style={styles.attraction}>
+                <Image source={{ uri: a.image }} style={styles.attrImg} />
+                <Text style={styles.attrName} numberOfLines={2}>
+                  {a.name}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
+
+          <Pressable style={styles.mapBtn} onPress={openMaps}>
+            <Ionicons name="map-outline" size={20} color="#fff" />
+            <Text style={styles.mapText}>View on Google Maps</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+
+      <View style={[styles.topBar, { top: insets.top + 8 }]}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.back} accessibilityLabel="Go back">
+          <Ionicons name="arrow-back" size={22} color={colors.text} />
+        </Pressable>
+        <HeartButton id={dest.id} />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.background },
+  hero: { width: '100%', height: 300, backgroundColor: colors.border },
+  topBar: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between' },
+  back: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  body: {
+    marginTop: -28,
+    backgroundColor: colors.background,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: 22,
+  },
+  badge: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    marginBottom: 8,
+  },
+  badgeText: { color: '#fff', fontWeight: '700', fontSize: 12 },
+  name: { fontSize: 30, fontWeight: '900', color: colors.text },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4 },
+  location: { color: colors.muted, fontSize: 15 },
+  infoRow: { flexDirection: 'row', gap: 12, marginTop: 18 },
+  infoBox: { flex: 1, backgroundColor: colors.card, borderRadius: radius.md, padding: 14, gap: 4 },
+  infoLabel: { color: colors.muted, fontSize: 12 },
+  infoValue: { color: colors.text, fontWeight: '700', fontSize: 14 },
+  section: { fontSize: 18, fontWeight: '800', color: colors.text, marginTop: 24, marginBottom: 10 },
+  desc: { color: colors.text, fontSize: 15, lineHeight: 23 },
+  attraction: { width: 150, marginRight: 14 },
+  attrImg: { width: 150, height: 110, borderRadius: radius.md, backgroundColor: colors.border },
+  attrName: { marginTop: 6, fontWeight: '600', color: colors.text },
+  mapBtn: {
+    marginTop: 28,
+    backgroundColor: colors.primary,
+    borderRadius: 14,
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  mapText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+});
