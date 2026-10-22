@@ -27,7 +27,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "server": "node server/index.js"
+    "server": "node --env-file-if-exists=.env server/index.js"
   },
   "private": true
 }

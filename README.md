@@ -46,8 +46,11 @@ The mobile app never holds an API key. Instead it calls [`server/index.js`](serv
 The Plan screen shows whether the AI planner is connected.
 
 ```bash
-# terminal 1: start the AI server (needs your own Gemini API key)
-GEMINI_API_KEY=your-key npm run server
+# one time: copy .env.example to .env and paste your Gemini API key into it
+cp .env.example .env
+
+# terminal 1: start the AI server (reads the key from .env)
+npm run server
 
 # terminal 2: start the app
 npx expo start --web
