@@ -12,6 +12,7 @@ import HeartButton from '../components/HeartButton';
 import SafeImage from '../components/SafeImage';
 import { Interest } from '../data/guide';
 import { useWishlist } from '../context/WishlistContext';
+import { useTrip } from '../context/TripContext';
 
 interface Weather {
   temp: number;
@@ -46,6 +47,8 @@ export default function DetailsScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
   const [weather, setWeather] = useState<WeatherState>('loading');
   const { notes, setNote } = useWishlist();
+  const { addActivity } = useTrip();
+  const [planMsg, setPlanMsg] = useState('');
 
   // Live weather from the free Open-Meteo API (no key needed). Fails silently if offline.
   useEffect(() => {
@@ -134,6 +137,24 @@ export default function DetailsScreen({ route, navigation }: any) {
                   {a.name}
                 </Text>
                 <Text style={styles.attrMap}>View on Maps</Text>
+                <Pressable
+                  onPress={() => {
+                    const r = addActivity(
+                      { time: 'Afternoon', text: `Visit ${a.name}.`, mapQuery: `${a.name}, ${dest.name}`, category: 'sight', durationHours: null, estimatedCostInr: null },
+                      dest.name,
+                    );
+                    setPlanMsg(
+                      r === null
+                        ? `Added ${a.name} to your ${dest.name.split(' (')[0]} plan.`
+                        : r === 'no-plan'
+                        ? 'Create an itinerary on the Plan tab first, then add attractions here.'
+                        : `Your current plan is for a different destination. Create a ${dest.name.split(' (')[0]} plan first.`,
+                    );
+                  }}
+                  accessibilityLabel={`Add ${a.name} to my plan`}
+                >
+                  <Text style={styles.attrAdd}>+ Add to plan</Text>
+                </Pressable>
               </Pressable>
             ))}
           </ScrollView>
@@ -156,6 +177,8 @@ export default function DetailsScreen({ route, navigation }: any) {
           <Text style={styles.desc}>
             Suggested stay: {dest.suggestedDays}. {dest.planningTip}
           </Text>
+
+          {planMsg !== '' && <Text style={styles.planMsg}>{planMsg}</Text>}
 
           {dest.tip && (
             <>
@@ -257,6 +280,8 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     outlineStyle: 'none',
   } as any,
+  attrAdd: { color: colors.accent, fontWeight: '700', fontSize: 12, marginTop: 4 },
+  planMsg: { color: colors.primaryDark, fontWeight: '600', marginTop: 10 },
   attrMap: { color: colors.primary, fontWeight: '600', fontSize: 12, marginTop: 2 },
   expRow: { flexDirection: 'row', gap: 12, marginBottom: 12, backgroundColor: colors.card, borderRadius: radius.md, padding: 12 },
   expTitle: { fontWeight: '800', color: colors.text },

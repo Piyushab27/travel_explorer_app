@@ -19,6 +19,10 @@ export interface Preferences {
   duration: Duration | null;
   style: TravelStyle | null;
   interests: Interest[];
+  /** Optional details sent to the AI explanation only (they do not change the rule-based score). */
+  startCity: string;
+  month: string | null;
+  notes: string;
 }
 
 export const EMPTY_PREFERENCES: Preferences = {
@@ -27,6 +31,9 @@ export const EMPTY_PREFERENCES: Preferences = {
   duration: null,
   style: null,
   interests: [],
+  startCity: '',
+  month: null,
+  notes: '',
 };
 
 export interface Match {
