@@ -50,7 +50,7 @@ export default function WishlistScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   list: { padding: 20, paddingBottom: 40 },
-  title: { fontSize: 30, fontWeight: '900', color: colors.text },
+  title: { fontSize: 28, fontWeight: '900', color: colors.text },
   subtitle: { color: colors.muted, fontSize: 15 },
   empty: { alignItems: 'center', marginTop: 70, gap: 8, paddingHorizontal: 30 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.text },

@@ -5,7 +5,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius } from '../theme';
+import { colors, radius, shadow } from '../theme';
 import { Destination } from '../data/destinations';
 import HeartButton from './HeartButton';
 import SafeImage from './SafeImage';
@@ -56,11 +56,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     marginBottom: 18,
     overflow: 'hidden',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    ...shadow,
   },
   image: { width: '100%', height: 190, backgroundColor: colors.border },
   heart: { position: 'absolute', top: 12, right: 12 },

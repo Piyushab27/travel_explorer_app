@@ -36,7 +36,7 @@ A React Native (Expo, TypeScript) app for discovering destinations across India,
 
 ## AI Trip Planner: how it works
 
-The mobile app never holds an API key. Instead it calls [`server/index.js`](server/index.js), a tiny dependency-free Node server that holds `GEMINI_API_KEY` and calls the Google Gemini API (`generateContent`). The server tries `gemini-3.6-flash` first and automatically falls back to `gemini-3.8-flash` and `gemini-3.5-flash` if a model is overloaded, times out or is unavailable (this happened during testing). To prefer a different model set `GEMINI_MODEL`; see the [Gemini models page](https://ai.google.dev/gemini-api/docs/models). You can get a free key at [Google AI Studio](https://aistudio.google.com/apikey).
+The mobile app never holds an API key. Instead it calls [`server/index.js`](server/index.js), a tiny dependency-free Node server that holds `GEMINI_API_KEY` and calls the Google Gemini API (`generateContent`). The server tries `gemini-3.6-flash` first and automatically falls back to `gemini-3.8-flash` and `gemini-3.5-flash` if a model is overloaded, times out or is unavailable, then waits and retries for up to about 85 seconds (all three models were briefly overloaded during testing). To prefer a different model set `GEMINI_MODEL`; see the [Gemini models page](https://ai.google.dev/gemini-api/docs/models). You can get a free key at [Google AI Studio](https://aistudio.google.com/apikey).
 
 1. The app sends the request (destination, days, month, budget, style, interests, notes) plus facts from its own data (best time, attractions, entry notes) so the model stays grounded.
 2. The server validates the input (days 1–14, lengths capped), asks the model for JSON (JSON mode), parses it, and normalises it before returning it.
@@ -110,7 +110,7 @@ src/
 |---------|---------|------------|----------|
 | <img src="screenshots/home.jpg" width="200" /> | <img src="screenshots/details.jpg" width="200" /> | <img src="screenshots/trip-match.jpg" width="200" /> | <img src="screenshots/wishlist.jpg" width="200" /> |
 
-Trip Planner with a real AI-written itinerary (Gemini) for Udaipur, a place that is not in the app's own data:
+Trip Planner with a real AI-written itinerary (Gemini) for Hampi, shown as a timeline with Maps links:
 
 <img src="screenshots/planner.jpg" width="200" />
 

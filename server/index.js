@@ -134,7 +134,7 @@ async function callModel(model, request) {
         contents: [{ role: 'user', parts: [{ text: JSON.stringify(request) }] }],
         generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 4000, temperature: 0.7 },
       }),
-      signal: AbortSignal.timeout(45_000),
+      signal: AbortSignal.timeout(30_000),
     });
   } catch (err) {
     const e = new Error(`${model}: request failed (${err.name})`);
@@ -167,17 +167,29 @@ async function callModel(model, request) {
   }
 }
 
-/** Tries each model in order until one succeeds. */
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Tries each model in order. If every model is busy (503/429/timeouts), waits a moment and goes
+ * around again, up to 3 rounds and about 85 seconds in total (the app waits up to 100 seconds).
+ */
 async function generate(request) {
+  const startedAt = Date.now();
   let lastError;
-  for (const model of MODELS) {
-    try {
-      return await callModel(model, request);
-    } catch (err) {
-      lastError = err;
-      console.error('[itinerary]', err.message);
-      if (!err.retryable) break;
+  for (let round = 0; round < 3; round++) {
+    let allRetryable = true;
+    for (const model of MODELS) {
+      if (Date.now() - startedAt > 85_000) throw lastError || new Error('Timed out');
+      try {
+        return await callModel(model, request);
+      } catch (err) {
+        lastError = err;
+        console.error('[itinerary]', err.message.split('\n')[0].slice(0, 160));
+        if (!err.retryable) allRetryable = false;
+      }
     }
+    if (!allRetryable) break;
+    await sleep(2500 * (round + 1));
   }
   throw lastError;
 }

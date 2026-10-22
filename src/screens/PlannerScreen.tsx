@@ -9,15 +9,17 @@ import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, Te
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, radius } from '../theme';
+import { colors, radius, shadow, type } from '../theme';
 import { Chip, Group } from '../components/Chips';
 import DestinationInput from '../components/DestinationInput';
+import SafeImage from '../components/SafeImage';
 import {
   Itinerary,
   ItineraryRequest,
   ItinerarySource,
   buildOfflineItinerary,
   checkAi,
+  findDestination,
   generateAiItinerary,
 } from '../services/itinerary';
 
@@ -136,15 +138,19 @@ export default function PlannerScreen({ route }: any) {
   const openMap = (q: string) =>
     q && Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`);
 
+  const hero = result ? findDestination(result.request.destination) : undefined;
+  const TIME_ICON: Record<string, string> = { Morning: 'sunny-outline', Afternoon: 'partly-sunny-outline', Evening: 'moon-outline' };
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Trip Planner</Text>
-        <Text style={styles.subtitle}>Get a day-by-day itinerary for any place in India.</Text>
+        <Text style={styles.brand}>TRIP PLANNER</Text>
+        <Text style={styles.title}>Plan your perfect trip</Text>
+        <Text style={styles.subtitle}>Tell us where and how you travel, and get a day-by-day itinerary.</Text>
 
         <View style={[styles.status, aiOnline ? styles.statusOn : styles.statusOff]}>
-          <Ionicons name={aiOnline ? 'checkmark-circle' : 'alert-circle'} size={16} color={aiOnline ? '#1B7F4B' : '#9A5B00'} />
-          <Text style={[styles.statusText, { color: aiOnline ? '#1B7F4B' : '#9A5B00' }]}>
+          <Ionicons name={aiOnline ? 'checkmark-circle' : 'alert-circle'} size={16} color={aiOnline ? colors.success : colors.warn} />
+          <Text style={[styles.statusText, { color: aiOnline ? colors.success : colors.warn }]}>
             {aiOnline === null
               ? 'Checking AI planner…'
               : aiOnline
@@ -153,57 +159,70 @@ export default function PlannerScreen({ route }: any) {
           </Text>
         </View>
 
-        <Text style={styles.label}>Where to?</Text>
-        <DestinationInput value={destination} onChange={setDestination} />
+        {/* Step 1: where, how long, when */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>1. Where and when</Text>
+          <Text style={styles.label}>Destination</Text>
+          <DestinationInput value={destination} onChange={setDestination} />
 
-        <Text style={styles.label}>How many days?</Text>
-        <View style={styles.stepper}>
-          <Pressable style={styles.stepBtn} onPress={() => setDays((d) => Math.max(1, d - 1))} accessibilityLabel="Fewer days">
-            <Ionicons name="remove" size={20} color={colors.primary} />
-          </Pressable>
-          <Text style={styles.days}>{days} {days === 1 ? 'day' : 'days'}</Text>
-          <Pressable style={styles.stepBtn} onPress={() => setDays((d) => Math.min(14, d + 1))} accessibilityLabel="More days">
-            <Ionicons name="add" size={20} color={colors.primary} />
-          </Pressable>
-        </View>
-
-        <Text style={styles.label}>Travel month (optional)</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.row}>
-            {MONTHS.map((m) => (
-              <Chip key={m} label={m} active={month === m} onPress={() => setMonth(month === m ? null : m)} />
-            ))}
+          <Text style={styles.label}>Length of trip</Text>
+          <View style={styles.stepper}>
+            <Pressable style={styles.stepBtn} onPress={() => setDays((d) => Math.max(1, d - 1))} accessibilityLabel="Fewer days">
+              <Ionicons name="remove" size={20} color={colors.primary} />
+            </Pressable>
+            <Text style={styles.days}>{days} {days === 1 ? 'day' : 'days'}</Text>
+            <Pressable style={styles.stepBtn} onPress={() => setDays((d) => Math.min(14, d + 1))} accessibilityLabel="More days">
+              <Ionicons name="add" size={20} color={colors.primary} />
+            </Pressable>
           </View>
-        </ScrollView>
 
-        <Group title="Budget" options={BUDGETS} value={budget} onChange={setBudget} />
-        <Group title="Travel style" options={STYLES} value={style} onChange={setStyle} />
+          <Text style={styles.label}>Travel month (optional)</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.row}>
+              {MONTHS.map((m) => (
+                <Chip key={m} label={m} active={month === m} onPress={() => setMonth(month === m ? null : m)} />
+              ))}
+            </View>
+          </ScrollView>
+        </View>
 
-        <View style={styles.group}>
-          <Text style={styles.label}>Interests</Text>
-          <View style={styles.row}>
-            {INTERESTS.map((i) => (
-              <Chip key={i} label={i.charAt(0).toUpperCase() + i.slice(1)} active={interests.includes(i)} onPress={() => toggleInterest(i)} />
-            ))}
+        {/* Step 2: preferences */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>2. Your style</Text>
+          <Group title="Budget" options={BUDGETS} value={budget} onChange={setBudget} />
+          <Group title="Travelling as" options={STYLES} value={style} onChange={setStyle} />
+
+          <View style={styles.group}>
+            <Text style={styles.groupTitle}>Interests</Text>
+            <View style={styles.row}>
+              {INTERESTS.map((i) => (
+                <Chip key={i} label={i.charAt(0).toUpperCase() + i.slice(1)} active={interests.includes(i)} onPress={() => toggleInterest(i)} />
+              ))}
+            </View>
           </View>
+
+          <View style={[styles.group, { alignSelf: 'flex-start' }]}>
+            <Chip label="💎 Prefer hidden gems" active={hiddenGems} onPress={() => setHiddenGems((v) => !v)} />
+          </View>
+
+          <Text style={styles.label}>Anything else? (optional)</Text>
+          <TextInput
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="e.g. vegetarian, travelling with elderly parents, love photography"
+            placeholderTextColor={colors.muted}
+            multiline
+            maxLength={400}
+            style={styles.notes}
+          />
         </View>
 
-        <View style={[styles.group, { alignSelf: 'flex-start' }]}>
-          <Chip label="💎 Prefer hidden gems" active={hiddenGems} onPress={() => setHiddenGems((v) => !v)} />
-        </View>
-
-        <Text style={styles.label}>Anything else? (optional)</Text>
-        <TextInput
-          value={notes}
-          onChangeText={setNotes}
-          placeholder="e.g. vegetarian, travelling with elderly parents, love photography"
-          placeholderTextColor={colors.muted}
-          multiline
-          maxLength={400}
-          style={styles.notes}
-        />
-
-        {error !== '' && <Text style={styles.error}>{error}</Text>}
+        {error !== '' && (
+          <View style={styles.errorBox}>
+            <Ionicons name="information-circle" size={18} color={colors.warn} />
+            <Text style={styles.error}>{error}</Text>
+          </View>
+        )}
 
         <Pressable style={[styles.genBtn, loading && { opacity: 0.7 }]} onPress={generate} disabled={loading} accessibilityRole="button">
           {loading ? <ActivityIndicator color="#fff" /> : <Ionicons name="sparkles" size={18} color="#fff" />}
@@ -212,23 +231,42 @@ export default function PlannerScreen({ route }: any) {
 
         {result && (
           <View style={styles.result}>
-            <View style={[styles.badge, result.source === 'ai' ? styles.badgeAi : styles.badgeOffline]}>
-              <Text style={styles.badgeText}>{result.source === 'ai' ? '✨ AI-written plan' : 'Offline plan (not AI)'}</Text>
+            {/* Banner: destination photo when we have one, otherwise a solid header */}
+            <View style={styles.banner}>
+              {hero ? <SafeImage uri={hero.image} style={styles.bannerImg} /> : <View style={[styles.bannerImg, { backgroundColor: colors.primary }]} />}
+              <View style={styles.bannerShade} />
+              <View style={styles.bannerText}>
+                <View style={[styles.badge, result.source === 'ai' ? styles.badgeAi : styles.badgeOffline]}>
+                  <Text style={styles.badgeText}>{result.source === 'ai' ? '✨ AI-written plan' : 'Offline plan (not AI)'}</Text>
+                </View>
+                <Text style={styles.resTitle}>{result.itinerary.title}</Text>
+              </View>
             </View>
-            <Text style={styles.resTitle}>{result.itinerary.title}</Text>
-            <Text style={styles.resSummary}>{result.itinerary.summary}</Text>
+            {result.itinerary.summary !== '' && <Text style={styles.resSummary}>{result.itinerary.summary}</Text>}
 
             {result.itinerary.days.map((d) => (
-              <View key={d.day} style={styles.day}>
-                <Text style={styles.dayTitle}>Day {d.day}: {d.title.replace(/^Day \d+:?\s*/i, '')}</Text>
+              <View key={d.day} style={styles.dayCard}>
+                <View style={styles.dayHead}>
+                  <View style={styles.dayNum}>
+                    <Text style={styles.dayNumText}>{d.day}</Text>
+                  </View>
+                  <Text style={styles.dayTitle}>{d.title.replace(/^Day \d+:?\s*/i, '')}</Text>
+                </View>
                 {d.activities.map((a, idx) => (
                   <View key={idx} style={styles.activity}>
-                    <Text style={styles.time}>{a.time}</Text>
-                    <View style={{ flex: 1 }}>
+                    <View style={styles.rail}>
+                      <View style={styles.dot}>
+                        <Ionicons name={TIME_ICON[a.time] as any} size={16} color={colors.primary} />
+                      </View>
+                      {idx < d.activities.length - 1 && <View style={styles.line} />}
+                    </View>
+                    <View style={styles.actBody}>
+                      <Text style={styles.time}>{a.time.toUpperCase()}</Text>
                       <Text style={styles.actText}>{a.text}</Text>
                       {a.mapQuery !== '' && (
-                        <Pressable onPress={() => openMap(a.mapQuery)}>
-                          <Text style={styles.mapLink}>View on Maps</Text>
+                        <Pressable style={styles.mapPill} onPress={() => openMap(a.mapQuery)} accessibilityLabel={`Open ${a.mapQuery} in Maps`}>
+                          <Ionicons name="location" size={13} color={colors.primary} />
+                          <Text style={styles.mapLink}>Open in Maps</Text>
                         </Pressable>
                       )}
                     </View>
@@ -238,25 +276,28 @@ export default function PlannerScreen({ route }: any) {
             ))}
 
             {result.itinerary.tips.length > 0 && (
-              <>
-                <Text style={styles.dayTitle}>Tips</Text>
+              <View style={styles.tipsBox}>
+                <View style={styles.tipsHead}>
+                  <Ionicons name="bulb-outline" size={18} color={colors.primaryDark} />
+                  <Text style={styles.tipsTitle}>Good to know</Text>
+                </View>
                 {result.itinerary.tips.map((t) => (
-                  <Text key={t} style={styles.actText}>• {t}</Text>
+                  <Text key={t} style={styles.tipText}>•  {t}</Text>
                 ))}
-              </>
+              </View>
             )}
             <Text style={styles.caveat}>{result.itinerary.caveats}</Text>
 
             <Pressable style={[styles.saveBtn, justSaved && { opacity: 0.6 }]} onPress={save} disabled={justSaved}>
-              <Ionicons name={justSaved ? 'checkmark' : 'bookmark-outline'} size={18} color={colors.primary} />
-              <Text style={styles.saveText}>{justSaved ? 'Saved' : 'Save this plan'}</Text>
+              <Ionicons name={justSaved ? 'checkmark' : 'bookmark-outline'} size={18} color="#fff" />
+              <Text style={styles.saveText}>{justSaved ? 'Saved to this device' : 'Save this plan'}</Text>
             </Pressable>
           </View>
         )}
 
         {saved.length > 0 && (
           <View style={styles.savedBox}>
-            <Text style={styles.resTitle}>Saved plans</Text>
+            <Text style={styles.cardTitle}>Saved plans</Text>
             {saved.map((s) => (
               <View key={s.id} style={styles.savedRow}>
                 <Pressable style={{ flex: 1 }} onPress={() => { setResult({ itinerary: s.itinerary, source: s.source, request: s.request }); setJustSaved(true); setError(''); }}>
@@ -279,44 +320,69 @@ export default function PlannerScreen({ route }: any) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 20, paddingBottom: 50 },
-  title: { fontSize: 30, fontWeight: '900', color: colors.text },
-  subtitle: { color: colors.muted, fontSize: 15, marginBottom: 12 },
-  status: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 10, borderRadius: 12, marginBottom: 6 },
-  statusOn: { backgroundColor: '#E6F6EC' },
-  statusOff: { backgroundColor: '#FFF3DC' },
+  content: { padding: 20, paddingBottom: 60 },
+  brand: { color: colors.accent, fontWeight: '800', letterSpacing: 2, fontSize: 12, marginBottom: 2 },
+  title: type.title,
+  subtitle: { ...type.body, color: colors.muted, marginTop: 4, marginBottom: 14 },
+  status: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 12, borderRadius: 12, marginBottom: 16 },
+  statusOn: { backgroundColor: colors.successSoft },
+  statusOff: { backgroundColor: colors.warnSoft },
   statusText: { fontWeight: '600', fontSize: 13, flex: 1 },
-  label: { fontWeight: '800', color: colors.text, marginTop: 16, marginBottom: 8 },
+  card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 16, marginBottom: 16, ...shadow },
+  cardTitle: { ...type.section, marginBottom: 2 },
+  label: { fontWeight: '700', color: colors.text, marginTop: 16, marginBottom: 8, fontSize: 14 },
   group: { marginTop: 16 },
+  groupTitle: { fontWeight: '700', color: colors.text, marginBottom: 8, fontSize: 14 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  stepBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card },
+  stepBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card },
   days: { fontSize: 18, fontWeight: '800', color: colors.text, minWidth: 80, textAlign: 'center' },
   notes: {
-    minHeight: 76, backgroundColor: colors.card, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border,
-    padding: 12, color: colors.text, textAlignVertical: 'top', outlineStyle: 'none',
+    minHeight: 76, backgroundColor: colors.background, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border,
+    padding: 12, color: colors.text, fontSize: 15, textAlignVertical: 'top', outlineStyle: 'none',
   } as any,
-  error: { color: '#9A5B00', marginTop: 14, fontWeight: '600', lineHeight: 20 },
-  genBtn: { marginTop: 20, backgroundColor: colors.accent, borderRadius: 14, height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  errorBox: { flexDirection: 'row', gap: 8, backgroundColor: colors.warnSoft, borderRadius: 12, padding: 12, marginBottom: 12 },
+  error: { color: colors.warn, fontWeight: '600', lineHeight: 20, flex: 1 },
+  genBtn: { backgroundColor: colors.accent, borderRadius: 16, height: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, ...shadow },
   genText: { color: '#fff', fontWeight: '800', fontSize: 16 },
-  result: { marginTop: 24, backgroundColor: colors.card, borderRadius: radius.lg, padding: 16 },
-  badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 14, marginBottom: 8 },
-  badgeAi: { backgroundColor: '#E6F6EC' },
-  badgeOffline: { backgroundColor: '#FFF3DC' },
+
+  result: { marginTop: 28 },
+  banner: { height: 190, borderRadius: radius.lg, overflow: 'hidden', justifyContent: 'flex-end' },
+  bannerImg: { ...StyleSheet.absoluteFill, width: '100%', height: '100%' },
+  bannerShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.42)' },
+  bannerText: { padding: 16, gap: 8 },
+  badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 14 },
+  badgeAi: { backgroundColor: colors.successSoft },
+  badgeOffline: { backgroundColor: colors.warnSoft },
   badgeText: { fontWeight: '700', fontSize: 12, color: colors.text },
-  resTitle: { fontSize: 22, fontWeight: '900', color: colors.text },
-  resSummary: { color: colors.text, lineHeight: 21, marginTop: 4 },
-  day: { marginTop: 16 },
-  dayTitle: { fontWeight: '800', fontSize: 16, color: colors.primaryDark, marginTop: 12, marginBottom: 6 },
-  activity: { flexDirection: 'row', gap: 10, marginBottom: 10 },
-  time: { width: 72, color: colors.accent, fontWeight: '800', fontSize: 12 },
-  actText: { color: colors.text, lineHeight: 20 },
-  mapLink: { color: colors.primary, fontWeight: '600', fontSize: 12, marginTop: 2 },
-  caveat: { color: colors.muted, fontSize: 12, marginTop: 14, lineHeight: 18 },
-  saveBtn: { marginTop: 14, borderWidth: 1, borderColor: colors.primary, borderRadius: 12, height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  saveText: { color: colors.primary, fontWeight: '700' },
-  savedBox: { marginTop: 28 },
-  savedRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 12, padding: 12, marginTop: 8, gap: 10 },
+  resTitle: { fontSize: 22, lineHeight: 28, fontWeight: '900', color: '#fff' },
+  resSummary: { ...type.body, marginTop: 14, marginBottom: 4 },
+
+  dayCard: { backgroundColor: colors.card, borderRadius: radius.lg, padding: 16, marginTop: 14, ...shadow },
+  dayHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
+  dayNum: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  dayNumText: { color: '#fff', fontWeight: '900' },
+  dayTitle: { ...type.section, flex: 1, color: colors.primaryDark },
+  activity: { flexDirection: 'row', gap: 12 },
+  rail: { alignItems: 'center', width: 32 },
+  dot: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
+  line: { flex: 1, width: 2, backgroundColor: colors.primarySoft, marginVertical: 2 },
+  actBody: { flex: 1, paddingBottom: 18 },
+  time: { color: colors.accent, fontWeight: '800', fontSize: 11, letterSpacing: 1 },
+  actText: { ...type.body, marginTop: 2 },
+  mapPill: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.primarySoft, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5, marginTop: 8 },
+  mapLink: { color: colors.primary, fontWeight: '700', fontSize: 12 },
+
+  tipsBox: { backgroundColor: colors.primarySoft, borderRadius: radius.lg, padding: 16, marginTop: 14, gap: 6 },
+  tipsHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
+  tipsTitle: { ...type.section, color: colors.primaryDark },
+  tipText: type.body,
+  caveat: { ...type.caption, marginTop: 14 },
+  saveBtn: { marginTop: 16, backgroundColor: colors.primary, borderRadius: 14, height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  saveText: { color: '#fff', fontWeight: '800' },
+
+  savedBox: { marginTop: 32 },
+  savedRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 14, marginTop: 10, gap: 10, ...shadow },
   savedName: { fontWeight: '700', color: colors.text },
-  savedMeta: { color: colors.muted, fontSize: 12 },
+  savedMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
 });
