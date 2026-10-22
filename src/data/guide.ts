@@ -161,4 +161,53 @@ export const GUIDE: Record<string, Guide> = {
     ],
     planningTip: 'Book safari slots early and carry neutral-coloured clothing for wildlife viewing.',
   },
+  hampi: {
+    theme: 'heritage', budgets: ['budget', 'comfortable'], duration: 'week', suggestedDays: '2–4 days',
+    styles: ['friends', 'solo', 'couple', 'family'],
+    experiences: [
+      { type: 'nature', text: 'Boulder hills and sunrise or sunset viewpoints over the ruins.' },
+      { type: 'adventure', text: 'Bouldering, cycling and coracle rides on the Tungabhadra river.' },
+      { type: 'cafes', text: 'Relaxed riverside cafés across the river in the Virupapura Gadde area.' },
+      { type: 'food', text: 'Simple North Karnataka meals and travellers’ cafés.' },
+      { type: 'markets', text: 'The bazaar street near the Virupaksha Temple.' },
+    ],
+    planningTip: 'Rent a bicycle or scooter and start early, because the ruins are spread over a large area with little shade.',
+  },
+  munnar: {
+    theme: 'mountains', budgets: ['budget', 'comfortable', 'premium'], duration: 'week', suggestedDays: '3–4 days',
+    styles: ['couple', 'family', 'friends', 'solo'],
+    experiences: [
+      { type: 'nature', text: 'Tea-estate walks, viewpoints and hill drives.' },
+      { type: 'food', text: 'Kerala meals and spice-flavoured snacks.' },
+      { type: 'shopping', text: 'Local tea, spices and homemade chocolate from shops in town.' },
+      { type: 'wellness', text: 'Ayurvedic massages offered by many resorts and clinics.' },
+      { type: 'adventure', text: 'Trekking and jeep rides in the surrounding hills.' },
+      { type: 'markets', text: 'Munnar town market for spices and tea.' },
+    ],
+    planningTip: 'Mornings are clearest for views, and mist often rolls in by afternoon.',
+  },
+  andaman: {
+    theme: 'beaches', budgets: ['comfortable', 'premium'], duration: 'extended', suggestedDays: '5–7 days',
+    styles: ['couple', 'family', 'friends', 'solo'],
+    experiences: [
+      { type: 'adventure', text: 'Snorkelling, scuba diving and sea walks at the coral reefs.' },
+      { type: 'nature', text: 'Beaches, mangroves and island boat trips.' },
+      { type: 'food', text: 'Fresh seafood at island restaurants and beach shacks.' },
+      { type: 'wellness', text: 'Quiet beachside stays and sunset walks.' },
+      { type: 'cafes', text: 'Beachside cafés on Havelock Island.' },
+    ],
+    planningTip: 'Book ferries and flights early, and keep spare days because sea trips depend on the weather.',
+  },
+  meghalaya: {
+    theme: 'mountains', budgets: ['budget', 'comfortable'], duration: 'week', suggestedDays: '4–6 days',
+    styles: ['friends', 'solo', 'couple', 'family'],
+    experiences: [
+      { type: 'nature', text: 'Waterfalls, caves and living root bridges around Cherrapunji.' },
+      { type: 'adventure', text: 'Trekking to the double-decker root bridge and kayaking on clear rivers.' },
+      { type: 'food', text: 'Khasi dishes such as jadoh and pork preparations.' },
+      { type: 'markets', text: 'Iewduh market in Shillong for local produce and crafts.' },
+      { type: 'cafes', text: 'Cafés and live-music spots in Shillong.' },
+    ],
+    planningTip: 'Carry rain gear all year and check weather before river or trek plans.',
+  },
 };

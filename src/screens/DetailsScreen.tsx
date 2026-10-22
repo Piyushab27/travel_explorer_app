@@ -174,6 +174,11 @@ export default function DetailsScreen({ route, navigation }: any) {
             style={styles.notes}
           />
 
+          <Pressable style={[styles.mapBtn, styles.planBtn]} onPress={() => navigation.navigate('Tabs', { screen: 'Plan', params: { destination: dest.name } })}>
+            <Ionicons name="sparkles" size={20} color="#fff" />
+            <Text style={styles.mapText}>Plan a trip to {dest.name.split(' (')[0]}</Text>
+          </Pressable>
+
           <Pressable style={styles.mapBtn} onPress={openMaps}>
             <Ionicons name="map-outline" size={20} color="#fff" />
             <Text style={styles.mapText}>View on Google Maps</Text>
@@ -256,6 +261,7 @@ const styles = StyleSheet.create({
   expRow: { flexDirection: 'row', gap: 12, marginBottom: 12, backgroundColor: colors.card, borderRadius: radius.md, padding: 12 },
   expTitle: { fontWeight: '800', color: colors.text },
   expText: { color: colors.text, lineHeight: 20, marginTop: 2 },
+  planBtn: { backgroundColor: colors.accent, marginBottom: -12 },
   mapBtn: {
     marginTop: 28,
     backgroundColor: colors.primary,

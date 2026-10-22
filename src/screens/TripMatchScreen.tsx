@@ -12,6 +12,7 @@ import { colors, radius } from '../theme';
 import { Budget, Duration, Interest, Theme, TravelStyle } from '../data/guide';
 import { EMPTY_PREFERENCES, INTEREST_LABEL, Match, Preferences, isValid, matchDestinations } from '../utils/matcher';
 import SafeImage from '../components/SafeImage';
+import { Chip, Group } from '../components/Chips';
 
 const PREFS_KEY = 'matchPrefs:v1';
 
@@ -56,48 +57,6 @@ function sanitize(raw: any): Preferences {
       ? raw.interests.filter((i: any) => INTERESTS.some((o) => o.value === i))
       : [],
   };
-}
-
-function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      style={[styles.chip, active && styles.chipActive]}
-    >
-      <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function Group<T extends string>({
-  title,
-  options,
-  value,
-  onChange,
-}: {
-  title: string;
-  options: { value: T; label: string }[];
-  value: T | null;
-  onChange: (v: T | null) => void;
-}) {
-  return (
-    <View style={styles.group}>
-      <Text style={styles.groupTitle}>{title}</Text>
-      <View style={styles.chipRow}>
-        {options.map((o) => (
-          <Chip
-            key={o.value}
-            label={o.label}
-            active={value === o.value}
-            // Tapping the selected chip again clears it.
-            onPress={() => onChange(value === o.value ? null : o.value)}
-          />
-        ))}
-      </View>
-    </View>
-  );
 }
 
 export default function TripMatchScreen({ navigation }: any) {
@@ -181,6 +140,13 @@ export default function TripMatchScreen({ navigation }: any) {
               <Text style={styles.reason}>{m.destination.attractions.map((a) => a.name).join(', ')}</Text>
               <Text style={styles.why}>Planning tip</Text>
               <Text style={styles.reason}>{m.destination.planningTip}</Text>
+              <Pressable
+                style={styles.planBtn}
+                onPress={() => navigation.navigate('Plan', { destination: m.destination.name, interests: prefs.interests, budget: prefs.budget, style: prefs.style })}
+              >
+                <Ionicons name="map-outline" size={16} color="#fff" />
+                <Text style={styles.planText}>Plan this trip</Text>
+              </Pressable>
             </View>
           </Pressable>
         ))}
@@ -197,17 +163,6 @@ const styles = StyleSheet.create({
   group: { marginTop: 16 },
   groupTitle: { fontWeight: '800', color: colors.text, marginBottom: 8 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText: { color: colors.text, fontWeight: '600' },
-  chipTextActive: { color: '#fff' },
   error: { color: colors.heart, marginTop: 14, fontWeight: '600' },
   findBtn: {
     marginTop: 20,
@@ -228,6 +183,8 @@ const styles = StyleSheet.create({
   rank: { color: colors.accent, fontWeight: '800', fontSize: 11, letterSpacing: 1 },
   cardName: { fontSize: 22, fontWeight: '900', color: colors.text },
   cardMeta: { color: colors.muted, marginBottom: 6 },
+  planBtn: { marginTop: 12, backgroundColor: colors.primary, borderRadius: 12, height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  planText: { color: '#fff', fontWeight: '700' },
   why: { fontWeight: '800', color: colors.text, marginTop: 8 },
   reason: { color: colors.text, lineHeight: 20 },
 });

@@ -1,5 +1,5 @@
 /**
- * Navigation setup: a bottom-tab navigator (Explore, Trip Match, Wishlist) inside a stack
+ * Navigation setup: a bottom-tab navigator (Explore, Trip Match, Plan, Wishlist) inside a stack
  * that also holds the Details screen, so Details opens full-screen with a back button.
  */
 import React from 'react';
@@ -11,6 +11,7 @@ import { colors } from '../theme';
 import HomeScreen from '../screens/HomeScreen';
 import WishlistScreen from '../screens/WishlistScreen';
 import TripMatchScreen from '../screens/TripMatchScreen';
+import PlannerScreen from '../screens/PlannerScreen';
 import DetailsScreen from '../screens/DetailsScreen';
 import { useWishlist } from '../context/WishlistContext';
 
@@ -26,13 +27,14 @@ function Tabs() {
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarIcon: ({ color, size, focused }) => {
-          const base = route.name === 'Home' ? 'compass' : route.name === 'Match' ? 'sparkles' : 'heart';
+          const base = route.name === 'Home' ? 'compass' : route.name === 'Match' ? 'sparkles' : route.name === 'Plan' ? 'map' : 'heart';
           return <Ionicons name={(focused ? base : `${base}-outline`) as any} size={size} color={color} />;
         },
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Explore' }} />
       <Tab.Screen name="Match" component={TripMatchScreen} options={{ title: 'Trip Match' }} />
+      <Tab.Screen name="Plan" component={PlannerScreen} options={{ title: 'Plan' }} />
       <Tab.Screen
         name="Wishlist"
         component={WishlistScreen}

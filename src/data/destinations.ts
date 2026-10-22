@@ -260,6 +260,70 @@ const BASE_DESTINATIONS: BaseDestination[] = [
       { name: 'Elephant Safari', image: wiki('thumb/1/15/Elephant_safari_at_Kaziranga_National_Park%2C_Assam.jpg/960px-Elephant_safari_at_Kaziranga_National_Park%2C_Assam.jpg') },
     ],
   },
+  {
+    id: 'hampi',
+    name: 'Hampi',
+    location: 'Karnataka, India',
+    category: 'Heritage',
+    image: wiki('thumb/b/ba/Iconic_Stone_Chariot_%40_Vittala_Temple%2C_Hampi%2C_Karnataka.jpg/960px-Iconic_Stone_Chariot_%40_Vittala_Temple%2C_Hampi%2C_Karnataka.jpg'),
+    description:
+      'The ruins of the Vijayanagara empire spread across a boulder-strewn landscape on the Tungabhadra river, a UNESCO World Heritage Site full of temples, markets and royal enclosures.',
+    bestTime: 'October to February',
+    coords: { lat: 15.335, lon: 76.462 },
+    attractions: [
+      { name: 'Vittala Temple Stone Chariot', image: wiki('thumb/b/ba/Iconic_Stone_Chariot_%40_Vittala_Temple%2C_Hampi%2C_Karnataka.jpg/960px-Iconic_Stone_Chariot_%40_Vittala_Temple%2C_Hampi%2C_Karnataka.jpg') },
+      { name: 'Virupaksha Temple', image: wiki('thumb/c/cb/Hampi_-_Hemakuta_Hill%2C_Virupaksha_Temple.jpg/960px-Hampi_-_Hemakuta_Hill%2C_Virupaksha_Temple.jpg') },
+      { name: 'Lotus Mahal', image: wiki('thumb/d/dd/Hampi%2C_India%2C_Lotus_Mahal.jpg/960px-Hampi%2C_India%2C_Lotus_Mahal.jpg') },
+    ],
+  },
+  {
+    id: 'munnar',
+    name: 'Munnar',
+    location: 'Kerala, India',
+    category: 'Mountains',
+    image: wiki('thumb/0/09/Munnar_-_Tea_Plantations.jpg/960px-Munnar_-_Tea_Plantations.jpg'),
+    description:
+      'Rolling tea estates, misty hills and cool air in the Western Ghats, with national parks and viewpoints close to town.',
+    bestTime: 'September to March',
+    coords: { lat: 10.0889, lon: 77.0595 },
+    attractions: [
+      { name: 'Tea Plantations', image: wiki('thumb/0/09/Munnar_-_Tea_Plantations.jpg/960px-Munnar_-_Tea_Plantations.jpg') },
+      { name: 'Eravikulam National Park', image: wiki('thumb/a/a6/Eravikulam_National_Park-WUS07189.jpg/960px-Eravikulam_National_Park-WUS07189.jpg') },
+      { name: 'Mattupetty Dam', image: wiki('thumb/a/af/Mattupetty_Lake_View.jpg/960px-Mattupetty_Lake_View.jpg') },
+    ],
+  },
+  {
+    id: 'andaman',
+    name: 'Andaman Islands',
+    location: 'Andaman and Nicobar Islands, India',
+    category: 'Beaches',
+    image: wiki('thumb/8/87/Havelock_Island%2C_Radhanagar_Beach_before_sunset%2C_Andaman_Islands.jpg/960px-Havelock_Island%2C_Radhanagar_Beach_before_sunset%2C_Andaman_Islands.jpg'),
+    description:
+      'Clear water, white-sand beaches and coral reefs in the Bay of Bengal, with snorkelling and diving, plus history at Port Blair.',
+    bestTime: 'October to May',
+    coords: { lat: 11.9588, lon: 92.997 },
+    attractions: [
+      { name: 'Radhanagar Beach', image: wiki('thumb/8/87/Havelock_Island%2C_Radhanagar_Beach_before_sunset%2C_Andaman_Islands.jpg/960px-Havelock_Island%2C_Radhanagar_Beach_before_sunset%2C_Andaman_Islands.jpg') },
+      { name: 'Elephant Beach', image: wiki('thumb/d/dd/Havelock_Island%2C_Elephant_Beach%2C_Andamans.jpg/960px-Havelock_Island%2C_Elephant_Beach%2C_Andamans.jpg') },
+      { name: 'Cellular Jail', image: wiki('thumb/0/0a/Cellular_jail_or_kaalaapani.jpg/960px-Cellular_jail_or_kaalaapani.jpg') },
+    ],
+  },
+  {
+    id: 'meghalaya',
+    name: 'Meghalaya',
+    location: 'Meghalaya, India',
+    category: 'Mountains',
+    image: wiki('thumb/0/03/The_Living_Root_Bridges_Of_Cherrapunji_In_Megahalya%2C_India.jpg/960px-The_Living_Root_Bridges_Of_Cherrapunji_In_Megahalya%2C_India.jpg'),
+    description:
+      'The “abode of clouds”: living root bridges, high waterfalls and crystal-clear rivers among some of the wettest hills in the world.',
+    bestTime: 'October to April (monsoon for waterfalls, but heavy rain)',
+    coords: { lat: 25.27, lon: 91.732 },
+    attractions: [
+      { name: 'Living Root Bridges', image: wiki('thumb/0/03/The_Living_Root_Bridges_Of_Cherrapunji_In_Megahalya%2C_India.jpg/960px-The_Living_Root_Bridges_Of_Cherrapunji_In_Megahalya%2C_India.jpg') },
+      { name: 'Nohkalikai Falls', image: wiki('thumb/7/78/NohKaLikai_Falls_V2_Wiki.jpg/960px-NohKaLikai_Falls_V2_Wiki.jpg') },
+      { name: 'Dawki and Umngot River', image: wiki('thumb/1/14/Dawki_Bridge_and_Umngot_River.jpg/960px-Dawki_Bridge_and_Umngot_River.jpg') },
+    ],
+  },
 ];
 
 /** Final destination list: base data plus trip-planning guide fields. */
