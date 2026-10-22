@@ -1,3 +1,7 @@
+/**
+ * Wishlist screen: shows the destinations the user has saved.
+ * Updates automatically because it reads from the shared WishlistContext.
+ */
 import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';

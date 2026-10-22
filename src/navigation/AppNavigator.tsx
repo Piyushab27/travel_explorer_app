@@ -1,3 +1,7 @@
+/**
+ * Navigation setup: a bottom-tab navigator (Home, Wishlist) inside a stack
+ * that also holds the Details screen, so Details opens full-screen with a back button.
+ */
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';

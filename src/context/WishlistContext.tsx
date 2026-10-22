@@ -1,3 +1,7 @@
+/**
+ * Wishlist state shared across all screens, saved to AsyncStorage so it survives restarts.
+ * Only destination IDs are stored; screens look up the full data in DESTINATIONS.
+ */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

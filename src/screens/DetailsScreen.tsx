@@ -1,3 +1,7 @@
+/**
+ * Details screen: shows one destination's description, best time to visit,
+ * live weather (Open-Meteo), popular attractions and a Google Maps link.
+ */
 import React, { useEffect, useState } from 'react';
 import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';

@@ -1,3 +1,7 @@
+/**
+ * Reusable destination card (image, category badge, heart, name, location).
+ * Used by both the Home and Wishlist lists.
+ */
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';

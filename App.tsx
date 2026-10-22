@@ -1,3 +1,7 @@
+/**
+ * App entry point.
+ * Wraps the app in the safe-area and wishlist providers, then renders the navigator.
+ */
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

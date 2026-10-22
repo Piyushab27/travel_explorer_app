@@ -1,3 +1,6 @@
+/**
+ * Static destination data and types. No backend is used; every screen reads from here.
+ */
 export type Category = 'Beaches' | 'Mountains' | 'Heritage' | 'Adventure';
 
 export const CATEGORIES: Category[] = ['Beaches', 'Mountains', 'Heritage', 'Adventure'];

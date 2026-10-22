@@ -1,3 +1,7 @@
+/**
+ * Home screen: lists destinations with a name search box and category filter chips.
+ * Search and category are combined into a single filtered list.
+ */
 import React, { useMemo, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
