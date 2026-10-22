@@ -28,7 +28,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "server": "node --env-file-if-exists=.env server/index.js",
-    "test": "node --test tests/*.test.*js"
+    "test": "node --test tests/*.test.*js",
+    "dev": "node --env-file-if-exists=.env server/index.js & expo start --web"
   },
   "private": true
 }

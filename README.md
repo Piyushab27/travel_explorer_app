@@ -58,6 +58,7 @@ Questions that depend on current facts (visa, entry requirements, advisories, ex
 Requires Node.js 24 (or 22.18+): the server loads `.env` and the tests run TypeScript directly.
 
 ```bash
+cd travel-explorer-app      # npm commands only work inside the project folder
 npm install
 cp .env.example .env        # then paste your Gemini API key into .env
 
@@ -66,6 +67,9 @@ npm run server
 
 # terminal 2: the app
 npx expo start --web        # or press i / a, or scan the QR code with Expo Go
+
+# macOS/Linux shortcut: start both together
+npm run dev
 ```
 
 On a physical phone `localhost` points at the phone, so use your computer's address: `EXPO_PUBLIC_API_URL=http://<your-computer-ip>:8787 npx expo start` (Android emulator: `http://10.0.2.2:8787`). Expo Go must support this project's Expo SDK (58).
