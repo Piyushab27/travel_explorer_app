@@ -11,7 +11,14 @@ A React Native (Expo, TypeScript) app for discovering destinations across India 
 | 3. Search & filter | Search by name combined with category chips |
 | 4. Wishlist | Add and remove from cards or the details page, with a separate Wishlist screen and a tab badge |
 
-**Extras:** wishlist persists across restarts (AsyncStorage), live weather (Open-Meteo, no API key), and a "View on Google Maps" link.
+**Extras:**
+- Wishlist persists across restarts (AsyncStorage).
+- Live weather (Open-Meteo, no API key) and a "View on Google Maps" link.
+- **Hidden gems:** five lesser-known places (Orchha, Mandu, Tirthan Valley, Gokarna's Half Moon Beach, Ziro Valley), researched from travel guides.
+- **Entry cost and official website** on each hidden gem. Prices are for Indian visitors and come from travel guides, so they may be out of date. Always confirm on the linked official site.
+- **Customisable browsing:** toggles for Hidden gems, Free entry and Cheapest first, combined with search and category filters.
+- **My notes:** write your own plans or budget per destination, saved on the device.
+- A local tip for each hidden gem.
 
 ## Setup
 

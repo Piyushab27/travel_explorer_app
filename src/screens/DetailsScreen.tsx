@@ -3,12 +3,13 @@
  * live weather (Open-Meteo), popular attractions and a Google Maps link.
  */
 import React, { useEffect, useState } from 'react';
-import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius } from '../theme';
 import { DESTINATIONS } from '../data/destinations';
 import HeartButton from '../components/HeartButton';
+import { useWishlist } from '../context/WishlistContext';
 
 interface Weather {
   temp: number;
@@ -30,6 +31,7 @@ export default function DetailsScreen({ route, navigation }: any) {
   const dest = DESTINATIONS.find((d) => d.id === route.params.id)!;
   const insets = useSafeAreaInsets();
   const [weather, setWeather] = useState<Weather | null>(null);
+  const { notes, setNote } = useWishlist();
 
   // Live weather from the free Open-Meteo API (no key needed). Fails silently if offline.
   useEffect(() => {
@@ -70,6 +72,30 @@ export default function DetailsScreen({ route, navigation }: any) {
             </View>
           </View>
 
+          {dest.hiddenGem && (
+            <View style={styles.gemBanner}>
+              <Text style={styles.gemText}>💎 Hidden gem: far fewer tourists than the famous spots</Text>
+            </View>
+          )}
+
+          {dest.ticket && (
+            <View style={styles.ticketBox}>
+              <View style={styles.ticketHead}>
+                <Ionicons name="ticket-outline" size={20} color={colors.primary} />
+                <Text style={styles.ticketTitle}>Entry cost</Text>
+                <Text style={styles.ticketPrice}>{dest.ticket.label}</Text>
+              </View>
+              <Text style={styles.ticketNote}>{dest.ticket.note}</Text>
+              <Text style={styles.disclaimer}>Prices come from travel guides and may change. Confirm on the official site.</Text>
+              {dest.website && (
+                <Pressable style={styles.linkBtn} onPress={() => Linking.openURL(dest.website!)}>
+                  <Ionicons name="open-outline" size={16} color={colors.primary} />
+                  <Text style={styles.linkText}>Official website</Text>
+                </Pressable>
+              )}
+            </View>
+          )}
+
           <Text style={styles.section}>About</Text>
           <Text style={styles.desc}>{dest.description}</Text>
 
@@ -84,6 +110,23 @@ export default function DetailsScreen({ route, navigation }: any) {
               </View>
             ))}
           </ScrollView>
+
+          {dest.tip && (
+            <>
+              <Text style={styles.section}>Local tip</Text>
+              <Text style={styles.desc}>{dest.tip}</Text>
+            </>
+          )}
+
+          <Text style={styles.section}>My notes</Text>
+          <TextInput
+            value={notes[dest.id] ?? ''}
+            onChangeText={(t) => setNote(dest.id, t)}
+            placeholder="Add your own plans, budget or reminders (saved on this device)"
+            placeholderTextColor={colors.muted}
+            multiline
+            style={styles.notes}
+          />
 
           <Pressable style={styles.mapBtn} onPress={openMaps}>
             <Ionicons name="map-outline" size={20} color="#fff" />
@@ -142,6 +185,27 @@ const styles = StyleSheet.create({
   attraction: { width: 150, marginRight: 14 },
   attrImg: { width: 150, height: 110, borderRadius: radius.md, backgroundColor: colors.border },
   attrName: { marginTop: 6, fontWeight: '600', color: colors.text },
+  gemBanner: { marginTop: 18, backgroundColor: '#FFF1EC', borderRadius: radius.md, padding: 12 },
+  gemText: { color: colors.accent, fontWeight: '700' },
+  ticketBox: { marginTop: 14, backgroundColor: colors.card, borderRadius: radius.md, padding: 14, gap: 6 },
+  ticketHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  ticketTitle: { flex: 1, fontWeight: '800', color: colors.text, fontSize: 16 },
+  ticketPrice: { fontWeight: '900', color: colors.primaryDark, fontSize: 18 },
+  ticketNote: { color: colors.text, lineHeight: 20 },
+  disclaimer: { color: colors.muted, fontSize: 12 },
+  linkBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
+  linkText: { color: colors.primary, fontWeight: '700' },
+  notes: {
+    minHeight: 80,
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 12,
+    color: colors.text,
+    textAlignVertical: 'top',
+    outlineStyle: 'none',
+  } as any,
   mapBtn: {
     marginTop: 28,
     backgroundColor: colors.primary,

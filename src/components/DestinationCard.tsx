@@ -22,14 +22,22 @@ export default function DestinationCard({ destination, onPress }: Props) {
       <View style={styles.heart}>
         <HeartButton id={destination.id} />
       </View>
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>{destination.category}</Text>
+      <View style={styles.badges}>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{destination.category}</Text>
+        </View>
+        {destination.hiddenGem && (
+          <View style={[styles.badge, styles.gemBadge]}>
+            <Text style={styles.badgeText}>💎 Hidden gem</Text>
+          </View>
+        )}
       </View>
       <View style={styles.info}>
         <Text style={styles.name}>{destination.name}</Text>
         <View style={styles.row}>
           <Ionicons name="location-sharp" size={14} color={colors.muted} />
           <Text style={styles.location}>{destination.location}</Text>
+          {destination.ticket && <Text style={styles.price}>Entry: {destination.ticket.label}</Text>}
         </View>
       </View>
     </Pressable>
@@ -50,10 +58,10 @@ const styles = StyleSheet.create({
   },
   image: { width: '100%', height: 190, backgroundColor: colors.border },
   heart: { position: 'absolute', top: 12, right: 12 },
+  badges: { position: 'absolute', top: 12, left: 12, flexDirection: 'row', gap: 6 },
+  gemBadge: { backgroundColor: colors.accent },
+  price: { marginLeft: 'auto', color: colors.primaryDark, fontWeight: '700', fontSize: 13 },
   badge: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
     backgroundColor: colors.primary,
     paddingHorizontal: 12,
     paddingVertical: 5,

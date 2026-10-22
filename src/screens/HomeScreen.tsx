@@ -13,17 +13,36 @@ import DestinationCard from '../components/DestinationCard';
 type Filter = Category | 'All';
 const FILTERS: Filter[] = ['All', ...CATEGORIES];
 
+function Toggle({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={[styles.toggle, active && styles.toggleActive]}>
+      <Text style={[styles.toggleText, active && styles.toggleTextActive]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export default function HomeScreen({ navigation }: any) {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<Filter>('All');
+  const [gemsOnly, setGemsOnly] = useState(false);
+  const [freeOnly, setFreeOnly] = useState(false);
+  const [sortByPrice, setSortByPrice] = useState(false);
 
   // Search (by name) and category filter are applied together.
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return DESTINATIONS.filter(
-      (d) => (category === 'All' || d.category === category) && d.name.toLowerCase().includes(q),
+    const list = DESTINATIONS.filter(
+      (d) =>
+        (category === 'All' || d.category === category) &&
+        d.name.toLowerCase().includes(q) &&
+        (!gemsOnly || d.hiddenGem) &&
+        (!freeOnly || d.ticket?.amount === 0),
     );
-  }, [query, category]);
+    // Cheapest first; places without a published price go last.
+    return sortByPrice
+      ? [...list].sort((a, b) => (a.ticket?.amount ?? Infinity) - (b.ticket?.amount ?? Infinity))
+      : list;
+  }, [query, category, gemsOnly, freeOnly, sortByPrice]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -68,6 +87,13 @@ export default function HomeScreen({ navigation }: any) {
                 );
               })}
             </ScrollView>
+
+            {/* Customisation toggles: hidden gems, free entry, price sorting */}
+            <View style={styles.toggles}>
+              <Toggle label="💎 Hidden gems" active={gemsOnly} onPress={() => setGemsOnly((v) => !v)} />
+              <Toggle label="Free entry" active={freeOnly} onPress={() => setFreeOnly((v) => !v)} />
+              <Toggle label="Cheapest first" active={sortByPrice} onPress={() => setSortByPrice((v) => !v)} />
+            </View>
           </View>
         }
         ListEmptyComponent={
@@ -101,7 +127,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   input: { flex: 1, fontSize: 16, color: colors.text, outlineStyle: 'none' } as any,
-  chips: { marginVertical: 16, flexGrow: 0 },
+  chips: { marginTop: 16, marginBottom: 12, flexGrow: 0 },
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -114,6 +140,18 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { color: colors.text, fontWeight: '600' },
   chipTextActive: { color: '#fff' },
+  toggles: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 18 },
+  toggle: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    backgroundColor: colors.card,
+  },
+  toggleActive: { backgroundColor: colors.accent },
+  toggleText: { color: colors.accent, fontWeight: '700', fontSize: 13 },
+  toggleTextActive: { color: '#fff' },
   empty: { alignItems: 'center', marginTop: 50, gap: 10 },
   emptyText: { color: colors.muted, fontSize: 15 },
 });

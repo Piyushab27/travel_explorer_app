@@ -6,12 +6,16 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = 'wishlist:v1';
+const NOTES_KEY = 'notes:v1';
 
 interface WishlistValue {
   /** IDs of saved destinations. */
   ids: string[];
   isSaved: (id: string) => boolean;
   toggle: (id: string) => void;
+  /** Personal notes the user writes for each destination, keyed by destination ID. */
+  notes: Record<string, string>;
+  setNote: (id: string, text: string) => void;
 }
 
 const WishlistContext = createContext<WishlistValue | null>(null);
@@ -19,12 +23,16 @@ const WishlistContext = createContext<WishlistValue | null>(null);
 /** Holds wishlist state app-wide and persists it to local storage. */
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const [ids, setIds] = useState<string[]>([]);
+  const [notes, setNotes] = useState<Record<string, string>>({});
   const [loaded, setLoaded] = useState(false);
 
   // Restore saved items on launch.
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((raw) => raw && setIds(JSON.parse(raw)))
+    Promise.all([AsyncStorage.getItem(STORAGE_KEY), AsyncStorage.getItem(NOTES_KEY)])
+      .then(([rawIds, rawNotes]) => {
+        if (rawIds) setIds(JSON.parse(rawIds));
+        if (rawNotes) setNotes(JSON.parse(rawNotes));
+      })
       .catch(() => {})
       .finally(() => setLoaded(true));
   }, []);
@@ -34,13 +42,21 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     if (loaded) AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(ids)).catch(() => {});
   }, [ids, loaded]);
 
+  useEffect(() => {
+    if (loaded) AsyncStorage.setItem(NOTES_KEY, JSON.stringify(notes)).catch(() => {});
+  }, [notes, loaded]);
+
+  const setNote = useCallback((id: string, text: string) => {
+    setNotes((prev) => ({ ...prev, [id]: text }));
+  }, []);
+
   const toggle = useCallback((id: string) => {
     setIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }, []);
 
   const value = useMemo(
-    () => ({ ids, toggle, isSaved: (id: string) => ids.includes(id) }),
-    [ids, toggle],
+    () => ({ ids, toggle, isSaved: (id: string) => ids.includes(id), notes, setNote }),
+    [ids, toggle, notes, setNote],
   );
 
   return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>;

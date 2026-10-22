@@ -21,6 +21,23 @@ export interface Destination {
   attractions: Attraction[];
   /** Used for the Google Maps link and the weather lookup. */
   coords: { lat: number; lon: number };
+  /** Lesser-known places away from the usual tourist trail. */
+  hiddenGem?: boolean;
+  /** Entry cost for Indian visitors. Figures come from travel guides, so always confirm on the official site. */
+  ticket?: Ticket;
+  /** Official or authoritative page to verify prices and timings. */
+  website?: string;
+  /** Local-style advice shown on the Details screen. */
+  tip?: string;
+}
+
+export interface Ticket {
+  /** Short label such as "₹10" or "Free". */
+  label: string;
+  /** Numeric lower-bound price in rupees (0 = free). null when no fixed price is published. Used for sorting/filtering. */
+  amount: number | null;
+  /** Extra detail about what the price covers. */
+  note: string;
 }
 
 const wiki = (path: string) => `https://upload.wikimedia.org/wikipedia/commons/${path}`;
@@ -103,6 +120,126 @@ export const DESTINATIONS: Destination[] = [
     attractions: [
       { name: 'Ram Jhula', image: wiki('1/11/Ramjhula_-_bridge_over_the_Ganga.jpg') },
       { name: 'Triveni Ghat', image: wiki('0/08/Triveni_Ghat_Krishna_Arjun_Rath.jpg') },
+    ],
+  },
+
+  // ---------------- Hidden gems: off the usual tourist trail ----------------
+  {
+    id: 'orchha',
+    name: 'Orchha',
+    location: 'Madhya Pradesh, India',
+    category: 'Heritage',
+    hiddenGem: true,
+    image: wiki('thumb/8/8c/Jahangir_Mahal%2C_Orchha%2C_Madhya_Pradesh%2C_India.jpg/960px-Jahangir_Mahal%2C_Orchha%2C_Madhya_Pradesh%2C_India.jpg'),
+    description:
+      'A quiet riverside town of Bundela palaces, temples and royal cenotaphs on the Betwa river, with a fraction of the crowds of Agra or Jaipur.',
+    bestTime: 'October to March',
+    coords: { lat: 25.3519, lon: 78.6406 },
+    ticket: {
+      label: '₹10',
+      amount: 10,
+      note: 'Combined fort-complex ticket for Indians (₹250 for foreigners, plus ₹25 per camera). Valid only on the day of purchase.',
+    },
+    website: 'https://www.mptourism.com',
+    tip: 'Stay for the evening: the fort’s light and sound show (about ₹200 for Indians) is the best way to see it after the day-trippers leave.',
+    attractions: [
+      { name: 'Jahangir Mahal', image: wiki('thumb/8/8c/Jahangir_Mahal%2C_Orchha%2C_Madhya_Pradesh%2C_India.jpg/960px-Jahangir_Mahal%2C_Orchha%2C_Madhya_Pradesh%2C_India.jpg') },
+      { name: 'Raja Mahal', image: wiki('thumb/e/eb/Raja_Mahal%2C_Orchha.jpg/960px-Raja_Mahal%2C_Orchha.jpg') },
+      { name: 'Royal Chhatris', image: wiki('thumb/3/3f/Chhatris%28Cenotaphs%29%2C_Orchha_05.jpg/960px-Chhatris%28Cenotaphs%29%2C_Orchha_05.jpg') },
+    ],
+  },
+  {
+    id: 'mandu',
+    name: 'Mandu',
+    location: 'Madhya Pradesh, India',
+    category: 'Heritage',
+    hiddenGem: true,
+    image: wiki('thumb/b/ba/Jahaz_Mahal_on_the_bank_of_Hauz-i-Shamsi.jpg/960px-Jahaz_Mahal_on_the_bank_of_Hauz-i-Shamsi.jpg'),
+    description:
+      'A ruined hilltop fortress-city of Afghan-era palaces and mosques, famous for the “Ship Palace” between two lakes and a marble tomb said to have inspired the Taj Mahal.',
+    bestTime: 'July to September (monsoon greenery) or October to March',
+    coords: { lat: 22.3612, lon: 75.3976 },
+    ticket: {
+      label: '₹25',
+      amount: 25,
+      note: 'ASI ticket for the Royal Enclave group for Indians (₹300 for foreigners). One older guide lists ₹15, so confirm at the counter.',
+    },
+    website: 'https://asi.nic.in',
+    tip: 'Monuments are spread over a large plateau. Hire a bicycle or auto for the day instead of walking.',
+    attractions: [
+      { name: 'Jahaz Mahal', image: wiki('thumb/b/ba/Jahaz_Mahal_on_the_bank_of_Hauz-i-Shamsi.jpg/960px-Jahaz_Mahal_on_the_bank_of_Hauz-i-Shamsi.jpg') },
+      { name: 'Hoshang Shah’s Tomb', image: wiki('thumb/5/5b/Hoshang_Shah%27s_Tomb_02.jpg/960px-Hoshang_Shah%27s_Tomb_02.jpg') },
+      { name: 'Roopmati Pavilion', image: wiki('thumb/c/c9/Roopmati_Pavilion_with_arch.jpg/960px-Roopmati_Pavilion_with_arch.jpg') },
+    ],
+  },
+  {
+    id: 'tirthan',
+    name: 'Tirthan Valley',
+    location: 'Himachal Pradesh, India',
+    category: 'Mountains',
+    hiddenGem: true,
+    image: wiki('thumb/9/94/Tirthan_River_Tirthan_Valley_DSC00968.jpg/960px-Tirthan_River_Tirthan_Valley_DSC00968.jpg'),
+    description:
+      'A calm trout-stream valley at the edge of the Great Himalayan National Park, a UNESCO World Heritage Site, with homestays, forest trails and no party crowd.',
+    bestTime: 'March to June and September to November',
+    coords: { lat: 31.6419, lon: 77.4395 },
+    ticket: {
+      label: '₹50–100/day',
+      amount: 50,
+      note: 'Great Himalayan National Park entry permit for Indians. Guides disagree on the exact rate, so confirm at the Sai Ropa office. Treks cost extra.',
+    },
+    website: 'https://hptdc.in',
+    tip: 'Book a family-run homestay near Gushaini and ask the host for a day trek or a fishing spot. Hosts often know trails not on any map.',
+    attractions: [
+      { name: 'Tirthan River', image: wiki('thumb/9/94/Tirthan_River_Tirthan_Valley_DSC00968.jpg/960px-Tirthan_River_Tirthan_Valley_DSC00968.jpg') },
+      { name: 'Jalori Pass', image: wiki('thumb/2/22/A_view_of_the_Himalayas_at_Jalori_pass_Himachal_Pradesh_India.jpg/960px-A_view_of_the_Himalayas_at_Jalori_pass_Himachal_Pradesh_India.jpg') },
+      { name: 'Serolsar Lake', image: wiki('thumb/f/fc/Serolsar_Lake_2.jpg/960px-Serolsar_Lake_2.jpg') },
+    ],
+  },
+  {
+    id: 'gokarna',
+    name: 'Gokarna (Half Moon Beach)',
+    location: 'Karnataka, India',
+    category: 'Beaches',
+    hiddenGem: true,
+    image: wiki('thumb/0/0c/Gokarna_picture_near_Om_Beach.jpg/960px-Gokarna_picture_near_Om_Beach.jpg'),
+    description:
+      'A laid-back temple town with quiet cliff-backed beaches. Half Moon Beach is reachable only by a jungle trek or boat, so it stays peaceful.',
+    bestTime: 'October to March',
+    coords: { lat: 14.5479, lon: 74.3188 },
+    ticket: {
+      label: 'Free',
+      amount: 0,
+      note: 'No entry fee for the beaches. Guided trek packages (₹4,000+) are optional and charge for their own services.',
+    },
+    website: 'https://karnatakatourism.org/en/blogs/gokarna-beaches',
+    tip: 'Walk the cliff trail from Om Beach south (about 30 minutes) in the morning. Carry water, as there are very few shops on the trail.',
+    attractions: [
+      { name: 'Om Beach', image: wiki('thumb/5/53/PXL_20260103_101009613_People_and_Beach_Om_Beach_Gokarna%2C_Karnataka_35.jpg/960px-PXL_20260103_101009613_People_and_Beach_Om_Beach_Gokarna%2C_Karnataka_35.jpg') },
+      { name: 'Gokarna Coast', image: wiki('thumb/e/ea/Gokarna.JPG/960px-Gokarna.JPG') },
+    ],
+  },
+  {
+    id: 'ziro',
+    name: 'Ziro Valley',
+    location: 'Arunachal Pradesh, India',
+    category: 'Adventure',
+    hiddenGem: true,
+    image: wiki('thumb/6/61/Ziro_valley_of_Aruncahl_in_summer_season.jpg/960px-Ziro_valley_of_Aruncahl_in_summer_season.jpg'),
+    description:
+      'A high plateau of rice fields and pine hills, home of the Apatani people, for cycling, village walks and trekking far from the tourist circuit.',
+    bestTime: 'March to October (the music festival is usually late September)',
+    coords: { lat: 27.5445, lon: 93.8294 },
+    ticket: {
+      label: 'Permit needed',
+      amount: null,
+      note: 'Indian visitors need an Inner Line Permit (valid about 15 days) for Arunachal Pradesh. I could not confirm the fee, so check the official portal.',
+    },
+    website: 'https://arunachalpradesh.gov.in',
+    tip: 'Apply for the Inner Line Permit online before you travel. Rent a bike and explore the Apatani villages around Hong and Hari.',
+    attractions: [
+      { name: 'Ziro Valley', image: wiki('thumb/d/d0/Ziro_and_its_green_valley.jpg/960px-Ziro_and_its_green_valley.jpg') },
+      { name: 'Apatani Culture', image: wiki('thumb/7/7d/Apatani_culture.jpg/960px-Apatani_culture.jpg') },
     ],
   },
 ];
