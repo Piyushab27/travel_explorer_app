@@ -34,4 +34,6 @@ src/
 
 ## Screenshots
 
-Add screenshots of Home, Details and Wishlist here before submitting.
+| Home | Details | Wishlist |
+|------|---------|----------|
+| <img src="screenshots/home.jpg" width="240" /> | <img src="screenshots/details.jpg" width="240" /> | <img src="screenshots/wishlist.jpg" width="240" /> |
