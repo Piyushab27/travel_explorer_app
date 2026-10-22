@@ -1,14 +1,14 @@
 /**
  * Roam India itinerary server.
  *
- * A tiny, dependency-free Node server that asks a real Claude model to write an itinerary.
+ * A tiny, dependency-free Node server that asks a real Gemini model to write an itinerary.
  * It exists so the API key stays on the server and never ships inside the mobile app.
  *
- * Run:   ANTHROPIC_API_KEY=sk-ant-... node server/index.js
- * Env:   ANTHROPIC_API_KEY   required for AI itineraries
- *        ANTHROPIC_MODEL     optional, defaults to claude-sonnet-5-5
- *        ANTHROPIC_BASE_URL  optional, defaults to https://api.anthropic.com
- *        PORT                optional, defaults to 8787
+ * Run:   GEMINI_API_KEY=... node server/index.js
+ * Env:   GEMINI_API_KEY    required for AI itineraries (free keys: https://aistudio.google.com/apikey)
+ *        GEMINI_MODEL      optional, defaults to gemini-3.8-flash (model names change; see ai.google.dev/gemini-api/docs/models)
+ *        GEMINI_BASE_URL   optional, defaults to https://generativelanguage.googleapis.com
+ *        PORT              optional, defaults to 8787
  *
  * Endpoints:
  *   GET  /api/health      -> { ai: boolean, model: string }
@@ -17,8 +17,9 @@
 const http = require('http');
 
 const PORT = Number(process.env.PORT) || 8787;
-const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5';
-const BASE_URL = (process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com').replace(/\/$/, '');
+const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+const BASE_URL = (process.env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com').replace(/\/$/, '');
+const API_KEY = () => process.env.GEMINI_API_KEY;
 const MAX_BODY = 20_000;
 
 const SYSTEM_PROMPT = `You are a careful, practical India travel planner inside a mobile app.
@@ -118,38 +119,39 @@ function normalise(raw) {
 }
 
 async function generate(request) {
-  const response = await fetch(`${BASE_URL}/v1/messages`, {
+  const response = await fetch(`${BASE_URL}/v1beta/models/${encodeURIComponent(MODEL)}:generateContent`, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': process.env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
+    headers: { 'content-type': 'application/json', 'x-goog-api-key': API_KEY() },
     body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 4000,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: JSON.stringify(request) }],
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      contents: [{ role: 'user', parts: [{ text: JSON.stringify(request) }] }],
+      generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 4000, temperature: 0.7 },
     }),
     signal: AbortSignal.timeout(90_000),
   });
   if (!response.ok) {
     const detail = await response.text().catch(() => '');
-    throw new Error(`Model API error ${response.status}: ${detail.slice(0, 200)}`);
+    const hint = response.status === 404 ? ` (is GEMINI_MODEL "${MODEL}" available to your key?)` : '';
+    throw new Error(`Gemini API error ${response.status}${hint}: ${detail.slice(0, 200)}`);
   }
   const data = await response.json();
-  const text = (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
+  if (data.promptFeedback && data.promptFeedback.blockReason) {
+    throw new Error(`Gemini blocked the request: ${data.promptFeedback.blockReason}`);
+  }
+  const candidate = (data.candidates || [])[0];
+  const text = ((candidate && candidate.content && candidate.content.parts) || []).map((p) => p.text || '').join('');
+  if (!text) throw new Error(`Gemini returned no text (finishReason: ${candidate && candidate.finishReason})`);
   return normalise(parseJson(text));
 }
 
 const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return send(res, 204, {});
   if (req.method === 'GET' && req.url === '/api/health') {
-    return send(res, 200, { ai: Boolean(process.env.ANTHROPIC_API_KEY), model: MODEL });
+    return send(res, 200, { ai: Boolean(API_KEY()), model: MODEL });
   }
   if (req.method === 'POST' && req.url === '/api/itinerary') {
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return send(res, 503, { error: 'The AI planner is not configured on the server (missing ANTHROPIC_API_KEY).' });
+    if (!API_KEY()) {
+      return send(res, 503, { error: 'The AI planner is not configured on the server (missing GEMINI_API_KEY).' });
     }
     try {
       const parsed = JSON.parse((await readBody(req)) || '{}');
@@ -166,5 +168,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Roam India server on http://localhost:${PORT} (AI ${process.env.ANTHROPIC_API_KEY ? 'enabled' : 'DISABLED: set ANTHROPIC_API_KEY'})`);
+  console.log(`Roam India server on http://localhost:${PORT} (AI ${API_KEY() ? 'enabled' : 'DISABLED: set GEMINI_API_KEY'})`);
 });

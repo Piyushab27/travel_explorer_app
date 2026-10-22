@@ -1,6 +1,6 @@
 /**
  * Planner screen: builds a day-by-day itinerary for a destination the user types or selects.
- * It asks the Roam India server, which calls a real Claude model. If the server is unreachable
+ * It asks the Roam India server, which calls a real Gemini model. If the server is unreachable
  * or has no API key, it shows a clearly labelled rule-based "Offline plan" instead (known
  * destinations only). Plans can be saved on the device.
  */

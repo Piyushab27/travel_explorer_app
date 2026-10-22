@@ -23,7 +23,7 @@ A React Native (Expo, TypeScript) app for discovering destinations across India,
 
 **Extras**
 
-- **AI Trip Planner:** type any place in India (or pick from a dropdown), choose days, month, budget, style and interests, and get a day-by-day itinerary written by a real Claude model through a small server (see below). Plans can be saved on the device.
+- **AI Trip Planner:** type any place in India (or pick from a dropdown), choose days, month, budget, style and interests, and get a day-by-day itinerary written by a real Gemini model through a small server (see below). Plans can be saved on the device.
 - **Smart Trip Match:** pick preferred experience, budget, duration, travel style and interests to get ranked suggestions with reasons (see below).
 - **Hidden gems:** five lesser-known places (Orchha, Mandu, Tirthan Valley, Gokarna's Half Moon Beach, Ziro Valley) with a "Hidden gem" badge, a daily featured gem on Home, and a local tip.
 - **Entry cost and official link:** shown for hidden gems, for Indian visitors.
@@ -36,18 +36,18 @@ A React Native (Expo, TypeScript) app for discovering destinations across India,
 
 ## AI Trip Planner: how it works
 
-The mobile app never holds an API key. Instead it calls [`server/index.js`](server/index.js), a tiny dependency-free Node server that holds `ANTHROPIC_API_KEY` and calls the Anthropic Messages API (default model `claude-sonnet-5-5`, change with `ANTHROPIC_MODEL`).
+The mobile app never holds an API key. Instead it calls [`server/index.js`](server/index.js), a tiny dependency-free Node server that holds `GEMINI_API_KEY` and calls the Google Gemini API (`generateContent`). The default model is `gemini-3.8-flash`; Google renames models often, so if you get a model error set `GEMINI_MODEL` to one listed on the [Gemini models page](https://ai.google.dev/gemini-api/docs/models). You can get a free key at [Google AI Studio](https://aistudio.google.com/apikey).
 
 1. The app sends the request (destination, days, month, budget, style, interests, notes) plus facts from its own data (best time, attractions, entry notes) so the model stays grounded.
-2. The server validates the input (days 1–14, lengths capped), asks the model for strict JSON, parses it, and normalises it before returning it.
+2. The server validates the input (days 1–14, lengths capped), asks the model for JSON (JSON mode), parses it, and normalises it before returning it.
 3. The model is told never to invent businesses, prices, opening hours or distances, and to say "check locally" when unsure. Every plan ends with a reminder to verify timings, permits and prices.
 4. If the server is unreachable or has no key, the planner shows a clearly labelled **"Offline plan (not AI)"** built from the app's own data, and only for places in the app. For other places it explains that the AI planner is needed.
 
 The Plan screen shows whether the AI planner is connected.
 
 ```bash
-# terminal 1: start the AI server (needs your own Anthropic API key)
-ANTHROPIC_API_KEY=sk-ant-... npm run server
+# terminal 1: start the AI server (needs your own Gemini API key)
+GEMINI_API_KEY=your-key npm run server
 
 # terminal 2: start the app
 npx expo start --web
@@ -113,7 +113,7 @@ Trip Planner showing the labelled offline fallback (the AI version needs your AP
 
 ## Limitations
 
-- **AI planner needs a server and your own API key.** Without them only the labelled offline plan is available. During development the server pipeline (request validation, auth headers, JSON parsing, the app screens) was tested against a mock model; the real model's output quality was not tested because no API key was available. Check plans yourself, since language models can make mistakes.
+- **AI planner needs a server and your own API key.** Without them only the labelled offline plan is available. During development the server pipeline (request validation, auth headers, JSON parsing, the app screens) was tested against a mock Gemini endpoint (including blocked, empty and model-not-found replies); the real model's output quality was not tested because no API key was available. Check plans yourself, since language models can make mistakes.
 
 - **Ticket prices** for hidden gems come from travel-guide websites, not official sources, and may be out of date or differ between sources. Always confirm on the linked official site. Popular destinations have no price shown.
 - **Ziro Valley:** the Inner Line Permit fee could not be confirmed, so no price is shown.

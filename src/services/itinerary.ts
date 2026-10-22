@@ -1,6 +1,6 @@
 /**
  * Itinerary service.
- *  - generateAiItinerary: asks the Roam India server, which calls a real Claude model.
+ *  - generateAiItinerary: asks the Roam India server, which calls a real Gemini model.
  *  - buildOfflineItinerary: a simple rule-based plan from the app's own data, used only when
  *    the AI server is unreachable or has no API key. It is always labelled "Offline plan".
  */
