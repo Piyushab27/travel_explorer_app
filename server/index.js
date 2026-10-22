@@ -6,7 +6,8 @@
  *
  * Run:   GEMINI_API_KEY=... node server/index.js
  * Env:   GEMINI_API_KEY    required for AI itineraries (free keys: https://aistudio.google.com/apikey)
- *        GEMINI_MODEL      optional, defaults to gemini-3.8-flash (model names change; see ai.google.dev/gemini-api/docs/models)
+ *        GEMINI_MODEL      optional, tried first; busy or missing models fall back to gemini-3.6/3.8/3.5-flash
+ *                          (model names change; see ai.google.dev/gemini-api/docs/models)
  *        GEMINI_BASE_URL   optional, defaults to https://generativelanguage.googleapis.com
  *        PORT              optional, defaults to 8787
  *
@@ -17,7 +18,10 @@
 const http = require('http');
 
 const PORT = Number(process.env.PORT) || 8787;
-const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+// Models are tried in order. If one is overloaded (503) or unavailable, the next is used.
+const FALLBACK_MODELS = ['gemini-3.6-flash', 'gemini-3.8-flash', 'gemini-3.5-flash'];
+const MODELS = Array.from(new Set([process.env.GEMINI_MODEL, ...FALLBACK_MODELS].filter(Boolean)));
+const MODEL = MODELS[0];
 const BASE_URL = (process.env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com').replace(/\/$/, '');
 const API_KEY = () => process.env.GEMINI_API_KEY;
 const MAX_BODY = 20_000;
@@ -118,30 +122,64 @@ function normalise(raw) {
   };
 }
 
-async function generate(request) {
-  const response = await fetch(`${BASE_URL}/v1beta/models/${encodeURIComponent(MODEL)}:generateContent`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-goog-api-key': API_KEY() },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents: [{ role: 'user', parts: [{ text: JSON.stringify(request) }] }],
-      generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 4000, temperature: 0.7 },
-    }),
-    signal: AbortSignal.timeout(90_000),
-  });
+/** Calls one model once. Throws an Error with .retryable = true when another model may work. */
+async function callModel(model, request) {
+  let response;
+  try {
+    response = await fetch(`${BASE_URL}/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': API_KEY() },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{ role: 'user', parts: [{ text: JSON.stringify(request) }] }],
+        generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 4000, temperature: 0.7 },
+      }),
+      signal: AbortSignal.timeout(45_000),
+    });
+  } catch (err) {
+    const e = new Error(`${model}: request failed (${err.name})`);
+    e.retryable = true; // timeout or network error
+    throw e;
+  }
   if (!response.ok) {
     const detail = await response.text().catch(() => '');
-    const hint = response.status === 404 ? ` (is GEMINI_MODEL "${MODEL}" available to your key?)` : '';
-    throw new Error(`Gemini API error ${response.status}${hint}: ${detail.slice(0, 200)}`);
+    const e = new Error(`${model}: Gemini API error ${response.status}: ${detail.slice(0, 160)}`);
+    e.retryable = [404, 408, 429, 500, 502, 503, 504].includes(response.status);
+    throw e;
   }
   const data = await response.json();
   if (data.promptFeedback && data.promptFeedback.blockReason) {
-    throw new Error(`Gemini blocked the request: ${data.promptFeedback.blockReason}`);
+    throw new Error(`${model}: blocked (${data.promptFeedback.blockReason})`);
   }
   const candidate = (data.candidates || [])[0];
   const text = ((candidate && candidate.content && candidate.content.parts) || []).map((p) => p.text || '').join('');
-  if (!text) throw new Error(`Gemini returned no text (finishReason: ${candidate && candidate.finishReason})`);
-  return normalise(parseJson(text));
+  if (!text) {
+    const e = new Error(`${model}: no text returned (finishReason: ${candidate && candidate.finishReason})`);
+    e.retryable = true;
+    throw e;
+  }
+  try {
+    return normalise(parseJson(text));
+  } catch (err) {
+    const e = new Error(`${model}: could not parse JSON (${err.message})`);
+    e.retryable = true;
+    throw e;
+  }
+}
+
+/** Tries each model in order until one succeeds. */
+async function generate(request) {
+  let lastError;
+  for (const model of MODELS) {
+    try {
+      return await callModel(model, request);
+    } catch (err) {
+      lastError = err;
+      console.error('[itinerary]', err.message);
+      if (!err.retryable) break;
+    }
+  }
+  throw lastError;
 }
 
 const server = http.createServer(async (req, res) => {

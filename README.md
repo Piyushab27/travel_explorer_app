@@ -36,7 +36,7 @@ A React Native (Expo, TypeScript) app for discovering destinations across India,
 
 ## AI Trip Planner: how it works
 
-The mobile app never holds an API key. Instead it calls [`server/index.js`](server/index.js), a tiny dependency-free Node server that holds `GEMINI_API_KEY` and calls the Google Gemini API (`generateContent`). The default model is `gemini-3.8-flash`; Google renames models often, so if you get a model error set `GEMINI_MODEL` to one listed on the [Gemini models page](https://ai.google.dev/gemini-api/docs/models). You can get a free key at [Google AI Studio](https://aistudio.google.com/apikey).
+The mobile app never holds an API key. Instead it calls [`server/index.js`](server/index.js), a tiny dependency-free Node server that holds `GEMINI_API_KEY` and calls the Google Gemini API (`generateContent`). The server tries `gemini-3.6-flash` first and automatically falls back to `gemini-3.8-flash` and `gemini-3.5-flash` if a model is overloaded, times out or is unavailable (this happened during testing). To prefer a different model set `GEMINI_MODEL`; see the [Gemini models page](https://ai.google.dev/gemini-api/docs/models). You can get a free key at [Google AI Studio](https://aistudio.google.com/apikey).
 
 1. The app sends the request (destination, days, month, budget, style, interests, notes) plus facts from its own data (best time, attractions, entry notes) so the model stays grounded.
 2. The server validates the input (days 1–14, lengths capped), asks the model for JSON (JSON mode), parses it, and normalises it before returning it.
@@ -110,13 +110,13 @@ src/
 |---------|---------|------------|----------|
 | <img src="screenshots/home.jpg" width="200" /> | <img src="screenshots/details.jpg" width="200" /> | <img src="screenshots/trip-match.jpg" width="200" /> | <img src="screenshots/wishlist.jpg" width="200" /> |
 
-Trip Planner showing the labelled offline fallback (the AI version needs your API key):
+Trip Planner with a real AI-written itinerary (Gemini) for Udaipur, a place that is not in the app's own data:
 
 <img src="screenshots/planner.jpg" width="200" />
 
 ## Limitations
 
-- **AI planner needs a server and your own API key.** Without them only the labelled offline plan is available. During development the server pipeline (request validation, auth headers, JSON parsing, the app screens) was tested against a mock Gemini endpoint (including blocked, empty and model-not-found replies); the real model's output quality was not tested because no API key was available. Check plans yourself, since language models can make mistakes.
+- **AI planner needs a server and your own Gemini API key.** Without them only the labelled offline plan is available. It was tested end to end with the real Gemini API (for example a 2-day Udaipur plan and a 3-day Hampi plan came back in 10–15 seconds), and the server's blocked, empty and model-unavailable handling was tested against a mock. Language models can make mistakes, so check places, timings and prices yourself.
 
 - **Ticket prices** for hidden gems come from travel-guide websites, not official sources, and may be out of date or differ between sources. Always confirm on the linked official site. Popular destinations have no price shown.
 - **Ziro Valley:** the Inner Line Permit fee could not be confirmed, so no price is shown.
