@@ -3,11 +3,12 @@
  * Used by both the Home and Wishlist lists.
  */
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius } from '../theme';
 import { Destination } from '../data/destinations';
 import HeartButton from './HeartButton';
+import SafeImage from './SafeImage';
 
 interface Props {
   destination: Destination;
@@ -17,8 +18,13 @@ interface Props {
 /** Large image card used on the Home and Wishlist lists. */
 export default function DestinationCard({ destination, onPress }: Props) {
   return (
-    <Pressable onPress={onPress} style={styles.card}>
-      <Image source={{ uri: destination.image }} style={styles.image} />
+    <Pressable
+      onPress={onPress}
+      style={styles.card}
+      accessibilityRole="button"
+      accessibilityLabel={`${destination.name}, ${destination.location}`}
+    >
+      <SafeImage uri={destination.image} style={styles.image} />
       <View style={styles.heart}>
         <HeartButton id={destination.id} />
       </View>

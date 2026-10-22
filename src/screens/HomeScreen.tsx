@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../theme';
 import { CATEGORIES, DESTINATIONS, Category } from '../data/destinations';
 import DestinationCard from '../components/DestinationCard';
+import SafeImage from '../components/SafeImage';
 
 type Filter = Category | 'All';
 const FILTERS: Filter[] = ['All', ...CATEGORIES];
@@ -21,12 +22,30 @@ function Toggle({ label, active, onPress }: { label: string; active: boolean; on
   );
 }
 
+const GEMS = DESTINATIONS.filter((d) => d.hiddenGem);
+
+function greeting() {
+  const h = new Date().getHours();
+  return h < 12 ? 'Good morning, traveller' : h < 18 ? 'Good afternoon, traveller' : 'Good evening, traveller';
+}
+
 export default function HomeScreen({ navigation }: any) {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<Filter>('All');
   const [gemsOnly, setGemsOnly] = useState(false);
   const [freeOnly, setFreeOnly] = useState(false);
   const [sortByPrice, setSortByPrice] = useState(false);
+
+  const filtering = query.trim() !== '' || category !== 'All' || gemsOnly || freeOnly || sortByPrice;
+  const reset = () => {
+    setQuery('');
+    setCategory('All');
+    setGemsOnly(false);
+    setFreeOnly(false);
+    setSortByPrice(false);
+  };
+  // Rotate the featured gem by day of the year so it changes daily.
+  const featured = GEMS[Math.floor(Date.now() / 86400000) % GEMS.length];
 
   // Search (by name) and category filter are applied together.
   const results = useMemo(() => {
@@ -53,8 +72,9 @@ export default function HomeScreen({ navigation }: any) {
         keyboardShouldPersistTaps="handled"
         ListHeaderComponent={
           <View>
-            <Text style={styles.title}>Explore India</Text>
-            <Text style={styles.subtitle}>Find your next getaway</Text>
+            <Text style={styles.brand}>ROAM INDIA</Text>
+            <Text style={styles.title}>{greeting()}</Text>
+            <Text style={styles.subtitle}>Where to next? Discover places beyond the usual list.</Text>
 
             <View style={styles.search}>
               <Ionicons name="search" size={20} color={colors.muted} />
@@ -88,6 +108,22 @@ export default function HomeScreen({ navigation }: any) {
               })}
             </ScrollView>
 
+            {/* Featured: a hidden gem that rotates daily. Hidden while the user is filtering. */}
+            {!filtering && (
+              <Pressable
+                style={styles.featured}
+                onPress={() => navigation.navigate('Details', { id: featured.id })}
+                accessibilityLabel={`Featured: ${featured.name}`}
+              >
+                <SafeImage uri={featured.image} style={styles.featuredImg} />
+                <View style={styles.featuredOverlay}>
+                  <Text style={styles.featuredTag}>💎 FEATURED HIDDEN GEM</Text>
+                  <Text style={styles.featuredName}>{featured.name}</Text>
+                  <Text style={styles.featuredLoc}>{featured.location}</Text>
+                </View>
+              </Pressable>
+            )}
+
             {/* Customisation toggles: hidden gems, free entry, price sorting */}
             <View style={styles.toggles}>
               <Toggle label="💎 Hidden gems" active={gemsOnly} onPress={() => setGemsOnly((v) => !v)} />
@@ -100,6 +136,9 @@ export default function HomeScreen({ navigation }: any) {
           <View style={styles.empty}>
             <Ionicons name="compass-outline" size={48} color={colors.muted} />
             <Text style={styles.emptyText}>No destinations match your search.</Text>
+            <Pressable style={styles.resetBtn} onPress={reset}>
+              <Text style={styles.resetText}>Reset filters</Text>
+            </Pressable>
           </View>
         }
         renderItem={({ item }) => (
@@ -113,7 +152,8 @@ export default function HomeScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   list: { padding: 20, paddingBottom: 40 },
-  title: { fontSize: 30, fontWeight: '900', color: colors.text },
+  brand: { color: colors.accent, fontWeight: '800', letterSpacing: 2, fontSize: 12, marginBottom: 2 },
+  title: { fontSize: 28, fontWeight: '900', color: colors.text },
   subtitle: { color: colors.muted, fontSize: 15, marginBottom: 16 },
   search: {
     flexDirection: 'row',
@@ -152,6 +192,14 @@ const styles = StyleSheet.create({
   toggleActive: { backgroundColor: colors.accent },
   toggleText: { color: colors.accent, fontWeight: '700', fontSize: 13 },
   toggleTextActive: { color: '#fff' },
+  featured: { height: 180, borderRadius: 22, overflow: 'hidden', marginBottom: 18 },
+  featuredImg: { width: '100%', height: '100%' },
+  featuredOverlay: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: 14, backgroundColor: 'rgba(0,0,0,0.45)' },
+  featuredTag: { color: '#FFD9CC', fontWeight: '800', fontSize: 11, letterSpacing: 1 },
+  featuredName: { color: '#fff', fontSize: 22, fontWeight: '900' },
+  featuredLoc: { color: '#eee', fontSize: 13 },
+  resetBtn: { marginTop: 8, borderRadius: 14, borderWidth: 1, borderColor: colors.primary, paddingHorizontal: 18, paddingVertical: 10 },
+  resetText: { color: colors.primary, fontWeight: '700' },
   empty: { alignItems: 'center', marginTop: 50, gap: 10 },
   emptyText: { color: colors.muted, fontSize: 15 },
 });

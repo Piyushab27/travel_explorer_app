@@ -3,18 +3,32 @@
  * live weather (Open-Meteo), popular attractions and a Google Maps link.
  */
 import React, { useEffect, useState } from 'react';
-import { Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius } from '../theme';
 import { DESTINATIONS } from '../data/destinations';
 import HeartButton from '../components/HeartButton';
+import SafeImage from '../components/SafeImage';
+import { Interest } from '../data/guide';
 import { useWishlist } from '../context/WishlistContext';
 
 interface Weather {
   temp: number;
   label: string;
 }
+
+type WeatherState = 'loading' | 'error' | Weather;
+
+const EXPERIENCE_META: Record<Interest, { title: string; icon: string }> = {
+  food: { title: 'Food', icon: 'restaurant-outline' },
+  cafes: { title: 'Cafés', icon: 'cafe-outline' },
+  markets: { title: 'Markets', icon: 'storefront-outline' },
+  shopping: { title: 'Shopping', icon: 'bag-handle-outline' },
+  nature: { title: 'Nature & wildlife', icon: 'leaf-outline' },
+  adventure: { title: 'Adventure', icon: 'trail-sign-outline' },
+  wellness: { title: 'Wellness', icon: 'flower-outline' },
+};
 
 /** Maps Open-Meteo WMO weather codes to a short readable label. */
 function describe(code: number): string {
@@ -30,25 +44,32 @@ function describe(code: number): string {
 export default function DetailsScreen({ route, navigation }: any) {
   const dest = DESTINATIONS.find((d) => d.id === route.params.id)!;
   const insets = useSafeAreaInsets();
-  const [weather, setWeather] = useState<Weather | null>(null);
+  const [weather, setWeather] = useState<WeatherState>('loading');
   const { notes, setNote } = useWishlist();
 
   // Live weather from the free Open-Meteo API (no key needed). Fails silently if offline.
   useEffect(() => {
     const { lat, lon } = dest.coords;
+    setWeather('loading');
     fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error('weather request failed');
+        return r.json();
+      })
       .then((j) => setWeather({ temp: Math.round(j.current.temperature_2m), label: describe(j.current.weather_code) }))
-      .catch(() => setWeather(null));
+      .catch(() => setWeather('error'));
   }, [dest]);
 
+  // Google Maps search links need no API key.
+  const openSearch = (query: string) =>
+    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`);
   const openMaps = () =>
     Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${dest.coords.lat},${dest.coords.lon}`);
 
   return (
     <View style={styles.root}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        <Image source={{ uri: dest.image }} style={styles.hero} />
+        <SafeImage uri={dest.image} style={styles.hero} />
         <View style={styles.body}>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{dest.category}</Text>
@@ -68,7 +89,7 @@ export default function DetailsScreen({ route, navigation }: any) {
             <View style={styles.infoBox}>
               <Ionicons name="partly-sunny-outline" size={20} color={colors.accent} />
               <Text style={styles.infoLabel}>Weather now</Text>
-              <Text style={styles.infoValue}>{weather ? `${weather.temp}°C, ${weather.label}` : '—'}</Text>
+              <Text style={styles.infoValue}>{weather === 'loading' ? 'Loading…' : weather === 'error' ? 'Unavailable' : `${weather.temp}°C, ${weather.label}`}</Text>
             </View>
           </View>
 
@@ -102,14 +123,39 @@ export default function DetailsScreen({ route, navigation }: any) {
           <Text style={styles.section}>Popular attractions</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {dest.attractions.map((a) => (
-              <View key={a.name} style={styles.attraction}>
-                <Image source={{ uri: a.image }} style={styles.attrImg} />
+              <Pressable
+                key={a.name}
+                style={styles.attraction}
+                onPress={() => openSearch(`${a.name}, ${dest.name}`)}
+                accessibilityLabel={`${a.name}, open in Google Maps`}
+              >
+                <SafeImage uri={a.image} style={styles.attrImg} />
                 <Text style={styles.attrName} numberOfLines={2}>
                   {a.name}
                 </Text>
-              </View>
+                <Text style={styles.attrMap}>View on Maps</Text>
+              </Pressable>
             ))}
           </ScrollView>
+
+          <Text style={styles.section}>Nearby experiences</Text>
+          {dest.experiences.map((e) => (
+            <View key={e.text} style={styles.expRow}>
+              <Ionicons name={EXPERIENCE_META[e.type].icon as any} size={20} color={colors.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.expTitle}>{EXPERIENCE_META[e.type].title}</Text>
+                <Text style={styles.expText}>{e.text}</Text>
+                <Pressable onPress={() => openSearch(`${EXPERIENCE_META[e.type].title} in ${dest.name}`)}>
+                  <Text style={styles.attrMap}>Search on Maps</Text>
+                </Pressable>
+              </View>
+            </View>
+          ))}
+
+          <Text style={styles.section}>Planning tip</Text>
+          <Text style={styles.desc}>
+            Suggested stay: {dest.suggestedDays}. {dest.planningTip}
+          </Text>
 
           {dest.tip && (
             <>
@@ -206,6 +252,10 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     outlineStyle: 'none',
   } as any,
+  attrMap: { color: colors.primary, fontWeight: '600', fontSize: 12, marginTop: 2 },
+  expRow: { flexDirection: 'row', gap: 12, marginBottom: 12, backgroundColor: colors.card, borderRadius: radius.md, padding: 12 },
+  expTitle: { fontWeight: '800', color: colors.text },
+  expText: { color: colors.text, lineHeight: 20, marginTop: 2 },
   mapBtn: {
     marginTop: 28,
     backgroundColor: colors.primary,

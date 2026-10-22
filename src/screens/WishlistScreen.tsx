@@ -3,7 +3,7 @@
  * Updates automatically because it reads from the shared WishlistContext.
  */
 import React from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../theme';
@@ -34,6 +34,9 @@ export default function WishlistScreen({ navigation }: any) {
             <Ionicons name="heart-outline" size={52} color={colors.muted} />
             <Text style={styles.emptyTitle}>Nothing saved yet</Text>
             <Text style={styles.emptyText}>Tap the heart on a destination to save it for later.</Text>
+            <Pressable style={styles.exploreBtn} onPress={() => navigation.navigate('Home')}>
+              <Text style={styles.exploreText}>Explore destinations</Text>
+            </Pressable>
           </View>
         }
         renderItem={({ item }) => (
@@ -51,5 +54,7 @@ const styles = StyleSheet.create({
   subtitle: { color: colors.muted, fontSize: 15 },
   empty: { alignItems: 'center', marginTop: 70, gap: 8, paddingHorizontal: 30 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
+  exploreBtn: { marginTop: 12, backgroundColor: colors.primary, borderRadius: 14, paddingHorizontal: 22, paddingVertical: 12 },
+  exploreText: { color: '#fff', fontWeight: '700' },
   emptyText: { color: colors.muted, textAlign: 'center' },
 });

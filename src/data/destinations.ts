@@ -1,6 +1,8 @@
 /**
  * Static destination data and types. No backend is used; every screen reads from here.
+ * Trip-planning metadata (budget, experiences, tips) lives in guide.ts and is merged in below.
  */
+import { Guide, GUIDE } from './guide';
 export type Category = 'Beaches' | 'Mountains' | 'Heritage' | 'Adventure';
 
 export const CATEGORIES: Category[] = ['Beaches', 'Mountains', 'Heritage', 'Adventure'];
@@ -10,7 +12,7 @@ export interface Attraction {
   image: string;
 }
 
-export interface Destination {
+export interface BaseDestination {
   id: string;
   name: string;
   location: string;
@@ -43,7 +45,7 @@ export interface Ticket {
 const wiki = (path: string) => `https://upload.wikimedia.org/wikipedia/commons/${path}`;
 
 /** Static destination data (no backend required). */
-export const DESTINATIONS: Destination[] = [
+const BASE_DESTINATIONS: BaseDestination[] = [
   {
     id: 'goa',
     name: 'Goa',
@@ -202,7 +204,7 @@ export const DESTINATIONS: Destination[] = [
     location: 'Karnataka, India',
     category: 'Beaches',
     hiddenGem: true,
-    image: wiki('thumb/0/0c/Gokarna_picture_near_Om_Beach.jpg/960px-Gokarna_picture_near_Om_Beach.jpg'),
+    image: wiki('thumb/5/53/PXL_20260103_101009613_People_and_Beach_Om_Beach_Gokarna%2C_Karnataka_35.jpg/960px-PXL_20260103_101009613_People_and_Beach_Om_Beach_Gokarna%2C_Karnataka_35.jpg'),
     description:
       'A laid-back temple town with quiet cliff-backed beaches. Half Moon Beach is reachable only by a jungle trek or boat, so it stays peaceful.',
     bestTime: 'October to March',
@@ -242,4 +244,25 @@ export const DESTINATIONS: Destination[] = [
       { name: 'Apatani Culture', image: wiki('thumb/7/7d/Apatani_culture.jpg/960px-Apatani_culture.jpg') },
     ],
   },
+  {
+    id: 'kaziranga',
+    name: 'Kaziranga National Park',
+    location: 'Assam, India',
+    category: 'Adventure',
+    image: wiki('thumb/3/3c/Indian_rhinoceros_in_Kaziranga_National_Park_March_2025_by_Tisha_Mukherjee_06.jpg/960px-Indian_rhinoceros_in_Kaziranga_National_Park_March_2025_by_Tisha_Mukherjee_06.jpg'),
+    description:
+      'A UNESCO World Heritage Site on the Brahmaputra floodplain, home to the world’s largest population of the Indian one-horned rhinoceros, plus elephants, swamp deer and rich birdlife.',
+    bestTime: 'November to April (the park is closed in the monsoon)',
+    coords: { lat: 26.5775, lon: 93.1711 },
+    attractions: [
+      { name: 'One-horned Rhinoceros', image: wiki('thumb/3/3c/Indian_rhinoceros_in_Kaziranga_National_Park_March_2025_by_Tisha_Mukherjee_06.jpg/960px-Indian_rhinoceros_in_Kaziranga_National_Park_March_2025_by_Tisha_Mukherjee_06.jpg') },
+      { name: 'Jeep Safari (Central Zone)', image: wiki('thumb/2/2a/Jeep_Safari_Kaziranga%2C_Central_Zone_%28Kohara%29.jpg/960px-Jeep_Safari_Kaziranga%2C_Central_Zone_%28Kohara%29.jpg') },
+      { name: 'Elephant Safari', image: wiki('thumb/1/15/Elephant_safari_at_Kaziranga_National_Park%2C_Assam.jpg/960px-Elephant_safari_at_Kaziranga_National_Park%2C_Assam.jpg') },
+    ],
+  },
 ];
+
+/** Final destination list: base data plus trip-planning guide fields. */
+export type Destination = BaseDestination & Guide;
+
+export const DESTINATIONS: Destination[] = BASE_DESTINATIONS.map((d) => ({ ...d, ...GUIDE[d.id] }));
